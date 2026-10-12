@@ -1,0 +1,32 @@
+# Compose de desarrollo de la EVA (imagen única; sin PostgreSQL productivo).
+# Uso: cp .env.example .env && docker compose -f ops/compose.yaml up --build
+
+name: admon
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file: [../.env]
+    environment:
+      EVA_STATIC_DIR: /app/static
+    volumes:
+      - ../data:/data
+    networks: [eva_net]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  eva_net:
+    driver: bridge

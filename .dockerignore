@@ -1,0 +1,17 @@
+.git
+.github
+**/node_modules
+**/.svelte-kit
+**/build
+**/dist
+**/.venv
+**/__pycache__
+**/*.pyc
+.env
+.env.*
+!.env.example
+data
+contras.txt
+contras*.txt
+README.md
+AGENTS.md
