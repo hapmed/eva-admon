@@ -34,10 +34,16 @@ def test_envio_sin_smtp_configurado(client: TestClient, admin_headers: dict[str,
     assert response.status_code == 400
 
 
-def test_logo_colores(client: TestClient, admin_headers: dict[str, str]) -> None:
+def test_logo_colores(
+    client: TestClient, admin_headers: dict[str, str], tmp_path, monkeypatch
+) -> None:
     import io
 
     from PIL import Image
+
+    from app.core.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "logo_dir", str(tmp_path))
 
     image = Image.new("RGB", (64, 64), (200, 20, 20))
     buffer = io.BytesIO()

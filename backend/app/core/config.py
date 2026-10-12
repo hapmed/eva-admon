@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     # Reglas de negocio por defecto.
     iva_porcentaje: float = 16.0
     moneda: str = "MXN"
-    logo_dir: str = "/data/branding"
+    logo_dir: str = "./data/branding"
 
     # Carpeta del frontend compilado (SPA). Vacío = no se sirve (desarrollo).
     static_dir: str = ""
