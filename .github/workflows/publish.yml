@@ -27,7 +27,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          # Imagen única: ghcr.io/<owner>/<repo> (p. ej. ghcr.io/hapmed/eva-admon)
+          # Imagen única: ghcr.io/<owner>/<repo> (p. ej. ghcr.io/hector1516/eva-admon)
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=semver,pattern={{version}}

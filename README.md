@@ -77,7 +77,7 @@ La EVA se empaqueta como **una sola imagen** (contrato de contenedor): el
 la API en el mismo puerto.
 
 - Publica la imagen en GHCR (`.github/workflows/publish.yml`):
-  `ghcr.io/<owner>/<repo>` (p. ej. `ghcr.io/hapmed/eva-admon`).
+  `ghcr.io/<owner>/<repo>` (p. ej. `ghcr.io/hector1516/eva-admon`).
 - Registra la EVA (`code: admon`) en EVAS Admin con las versiones `approved`.
 - La plataforma inyecta `EVAS_VERSION`, `EVAS_EVA_CODE`, `EVAS_INSTALLATION_ID`,
   `EVAS_CLIENT_REF`, `DATABASE_URL`, `PORT` y `DB_PASSWORD`.
