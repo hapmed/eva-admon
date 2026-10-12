@@ -1,34 +1,37 @@
-"""Consecutivos y folios.
+"""Generación de folios compactos.
 
-Los contadores se guardan en la tabla `consecutivo` y se incrementan bajo
-bloqueo de fila para evitar duplicados con concurrencia.
+Esquema: `<día del año><segundos del día><aleatorio>` en base36.
+- día del año (1..366)  → 2 caracteres
+- segundos del día (0..86399) → 4 caracteres
+- aleatorio → N caracteres (para evitar colisiones dentro del mismo segundo)
+
+Total por defecto: 8 caracteres (p. ej. `A61UNZ7Q`). Ordenable cronológicamente.
 """
 
-from sqlalchemy.orm import Session
+import secrets
+from datetime import UTC, datetime
 
 from app.core.config import get_settings
-from app.models.consecutivo import Consecutivo
+
+_B36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
-def next_value(db: Session, scope: str) -> int:
-    counter = db.get(Consecutivo, scope, with_for_update=True)
-    if counter is None:
-        counter = Consecutivo(scope=scope, last_value=0)
-        db.add(counter)
-        db.flush()
-    counter.last_value += 1
-    db.flush()
-    return counter.last_value
+def to_base36(value: int) -> str:
+    if value <= 0:
+        return "0"
+    out: list[str] = []
+    while value:
+        value, remainder = divmod(value, 36)
+        out.append(_B36[remainder])
+    return "".join(reversed(out))
 
 
-def format_folio(prefix: str, value: int) -> str:
-    digits = get_settings().consecutivo_digitos
-    return f"{prefix}{value:0{digits}d}"
-
-
-def next_cliente_numero(db: Session) -> str:
-    return format_folio(get_settings().cliente_prefijo, next_value(db, "cliente"))
-
-
-def next_cotizacion_folio(db: Session) -> str:
-    return format_folio(get_settings().cotizacion_prefijo, next_value(db, "cotizacion"))
+def generate_folio() -> str:
+    settings = get_settings()
+    now = datetime.now(UTC)
+    day = now.timetuple().tm_yday
+    seconds = now.hour * 3600 + now.minute * 60 + now.second
+    suffix = "".join(
+        secrets.choice(_B36) for _ in range(max(0, settings.folio_random_chars))
+    )
+    return f"{to_base36(day).zfill(2)}{to_base36(seconds).zfill(4)}{suffix}"

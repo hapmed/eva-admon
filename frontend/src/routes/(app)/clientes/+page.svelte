@@ -14,9 +14,8 @@
 	type Contacto = { id?: number; nombre: string; email: string };
 	type Cliente = {
 		id: number;
-		numero_cliente: string;
-		nombre: string;
 		rfc: string;
+		nombre: string;
 		condiciones_pago: string;
 		activo: boolean;
 		contactos: Contacto[];
@@ -134,7 +133,7 @@
 	<div class="flex flex-wrap items-end gap-3">
 		<input
 			class="{inputClass} max-w-sm"
-			placeholder="Buscar por nombre, número o RFC"
+			placeholder="Buscar por nombre o RFC"
 			bind:value={search}
 			oninput={() => load(1)}
 		/>
@@ -154,9 +153,8 @@
 	{:else}
 		<DataTable
 			columns={[
-				{ key: 'numero_cliente', label: 'No. cliente' },
-				{ key: 'nombre', label: 'Nombre' },
 				{ key: 'rfc', label: 'RFC' },
+				{ key: 'nombre', label: 'Nombre' },
 				{ key: 'condiciones_pago', label: 'Condiciones de pago' }
 			]}
 			rows={clientes}

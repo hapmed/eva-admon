@@ -42,10 +42,8 @@ class Settings(BaseSettings):
     admin_password: str = ""
     admin_name: str = "Administrador"
 
-    # Folios y consecutivos.
-    cliente_prefijo: str = "CLI-"
-    cotizacion_prefijo: str = "COT-"
-    consecutivo_digitos: int = 4
+    # Folios: código compacto base36 = día del año + segundos del día + aleatorio.
+    folio_random_chars: int = 2
 
     # Reglas de negocio por defecto.
     iva_porcentaje: float = 16.0

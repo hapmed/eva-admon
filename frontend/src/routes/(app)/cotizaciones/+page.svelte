@@ -13,7 +13,7 @@
 	import type { Page } from '../../../lib/types';
 	import { inputClass, labelClass, labelTextClass } from '../../../lib/ui';
 
-	type ClienteResumen = { id: number; numero_cliente: string; nombre: string };
+	type ClienteResumen = { id: number; rfc: string; nombre: string };
 	type Cotizacion = {
 		id: number;
 		folio: string;
@@ -179,7 +179,7 @@
 			]}
 			rows={cotizaciones.map((c) => ({
 				...c,
-				cliente: `${c.cliente.numero_cliente} · ${c.cliente.nombre}`,
+				cliente: `${c.cliente.rfc} · ${c.cliente.nombre}`,
 				fecha: formatDate(c.fecha),
 				total: formatCurrency(c.total)
 			}))}

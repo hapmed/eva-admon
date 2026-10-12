@@ -10,7 +10,7 @@
 	import InlineAlert from './InlineAlert.svelte';
 	import PageHeader from './PageHeader.svelte';
 
-	type Cliente = { id: number; numero_cliente: string; nombre: string };
+	type Cliente = { id: number; rfc: string; nombre: string };
 	type Catalogo = {
 		id: number;
 		codigo: string;
@@ -197,7 +197,7 @@
 				<select class={inputClass} bind:value={form.cliente_id}>
 					<option value={0}>Selecciona…</option>
 					{#each clientes as cliente (cliente.id)}
-						<option value={cliente.id}>{cliente.numero_cliente} · {cliente.nombre}</option>
+						<option value={cliente.id}>{cliente.rfc} · {cliente.nombre}</option>
 					{/each}
 				</select>
 			</label>

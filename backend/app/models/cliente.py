@@ -11,8 +11,7 @@ class Cliente(TimestampMixin, Base):
     __tablename__ = "cliente"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    numero_cliente: Mapped[str] = mapped_column(String(30), unique=True, index=True)
-    rfc: Mapped[str] = mapped_column(String(20), default="")
+    rfc: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     nombre: Mapped[str] = mapped_column(String(255), index=True)
     condiciones_pago: Mapped[str] = mapped_column(Text, default="")
     activo: Mapped[bool] = mapped_column(Boolean, default=True)

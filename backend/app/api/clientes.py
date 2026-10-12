@@ -1,6 +1,7 @@
 """Clientes: altas, bajas (desactivación) y cambios."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.pagination import paginate
@@ -14,6 +15,7 @@ from app.services.clientes import clientes_query, create_cliente, update_cliente
 
 router = APIRouter(prefix="/clientes", tags=["clientes"])
 _writer = require_roles(Role.ADMIN, Role.VENTAS)
+_DUP = HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El RFC ya está registrado")
 
 
 def _get(db: Session, cliente_id: int) -> Cliente:
@@ -39,7 +41,11 @@ def get_clientes(
 def post_cliente(
     data: ClienteCreate, db: Session = Depends(get_session), _: Usuario = Depends(_writer)
 ) -> Cliente:
-    return create_cliente(db, data)
+    try:
+        return create_cliente(db, data)
+    except IntegrityError:
+        db.rollback()
+        raise _DUP from None
 
 
 @router.get("/{cliente_id}", response_model=ClienteRead, summary="Consultar cliente")
@@ -56,7 +62,11 @@ def patch_cliente(
     db: Session = Depends(get_session),
     _: Usuario = Depends(_writer),
 ) -> Cliente:
-    return update_cliente(db, _get(db, cliente_id), data)
+    try:
+        return update_cliente(db, _get(db, cliente_id), data)
+    except IntegrityError:
+        db.rollback()
+        raise _DUP from None
 
 
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Desactivar cliente")

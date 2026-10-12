@@ -3,7 +3,11 @@ from fastapi.testclient import TestClient
 
 def test_paginacion_y_filtros_clientes(client: TestClient, admin_headers: dict[str, str]) -> None:
     for index in range(25):
-        client.post("/api/v1/clientes", headers=admin_headers, json={"nombre": f"Cliente {index:02d}"})
+        client.post(
+            "/api/v1/clientes",
+            headers=admin_headers,
+            json={"nombre": f"Cliente {index:02d}", "rfc": f"RFC{index:05d}"},
+        )
 
     page1 = client.get("/api/v1/clientes?page=1&page_size=10", headers=admin_headers).json()
     assert page1["total"] == 25

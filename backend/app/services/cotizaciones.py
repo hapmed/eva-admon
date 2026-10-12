@@ -3,14 +3,23 @@
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.models.cotizacion import Cotizacion, CotizacionItem, EstadoCotizacion
 from app.schemas.cotizacion import CotizacionCreate, CotizacionUpdate, ItemIn
-from app.services.folios import next_cotizacion_folio
+from app.services.folios import generate_folio
 
 _CENT = Decimal("0.01")
+
+
+def _unique_folio(db: Session) -> str:
+    for _ in range(10):
+        folio = generate_folio()
+        if db.scalar(select(Cotizacion).where(Cotizacion.folio == folio)) is None:
+            return folio
+    raise RuntimeError("No se pudo generar un folio único")
 
 
 def _money(value: Decimal) -> Decimal:
@@ -75,7 +84,7 @@ def create_cotizacion(db: Session, data: CotizacionCreate, user_id: int | None) 
     settings = get_settings()
     iva = data.iva_porcentaje if data.iva_porcentaje is not None else settings.iva_porcentaje
     cotizacion = Cotizacion(
-        folio=next_cotizacion_folio(db),
+        folio=_unique_folio(db),
         cliente_id=data.cliente_id,
         fecha=data.fecha or date.today(),
         valida_hasta=data.valida_hasta,

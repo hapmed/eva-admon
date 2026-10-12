@@ -26,7 +26,9 @@ def test_admin_crea_usuario_y_ventas_no_gestiona(
     assert client.get("/api/v1/usuarios", headers=ventas_headers).status_code == 403
     # pero sí crear clientes
     assert (
-        client.post("/api/v1/clientes", headers=ventas_headers, json={"nombre": "X"}).status_code
+        client.post(
+            "/api/v1/clientes", headers=ventas_headers, json={"nombre": "X", "rfc": "XAX010101001"}
+        ).status_code
         == 201
     )
 

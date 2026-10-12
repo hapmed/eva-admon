@@ -47,7 +47,7 @@ class ClienteResumen(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    numero_cliente: str
+    rfc: str
     nombre: str
 
 

@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 
 from app.models.cliente import Cliente, ContactoCliente
 from app.schemas.cliente import ClienteCreate, ClienteUpdate, ContactoCreate
-from app.services.folios import next_cliente_numero
 
 
 def clientes_query(search: str | None = None, activo: bool | None = None):
@@ -18,17 +17,15 @@ def clientes_query(search: str | None = None, activo: bool | None = None):
         like = f"%{search.lower()}%"
         stmt = stmt.where(
             func.lower(Cliente.nombre).like(like)
-            | func.lower(Cliente.numero_cliente).like(like)
             | func.lower(Cliente.rfc).like(like)
         )
-    return stmt.order_by(Cliente.numero_cliente)
+    return stmt.order_by(Cliente.rfc)
 
 
 def create_cliente(db: Session, data: ClienteCreate) -> Cliente:
     cliente = Cliente(
-        numero_cliente=next_cliente_numero(db),
-        nombre=data.nombre,
         rfc=data.rfc,
+        nombre=data.nombre,
         condiciones_pago=data.condiciones_pago,
         activo=data.activo,
     )

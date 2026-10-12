@@ -12,6 +12,8 @@ versions:
     status: approved
   - version: "0.2.0"
     status: approved
+  - version: "0.3.0"
+    status: approved
 
 port: 8000
 healthcheck: /healthz
@@ -24,10 +26,6 @@ config_schema:
       type: string
     iva_porcentaje:
       type: number
-    cliente_prefijo:
-      type: string
-    cotizacion_prefijo:
-      type: string
   required:
     - locale
 

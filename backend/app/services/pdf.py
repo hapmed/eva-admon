@@ -143,7 +143,7 @@ def _parties(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) -
     cliente = cotizacion.cliente
     if cliente is not None:
         pdf.set_x(_MARGIN)
-        pdf.cell(105, 5, _safe(f"{cliente.numero_cliente} - {cliente.nombre}"), new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(105, 5, _safe(cliente.nombre), new_x="LMARGIN", new_y="NEXT")
         if cliente.rfc:
             pdf.set_x(_MARGIN)
             pdf.cell(105, 5, _safe(f"RFC: {cliente.rfc}"), new_x="LMARGIN", new_y="NEXT")

@@ -1,6 +1,6 @@
 [project]
 name = "eva-starter-backend"
-version = "0.2.0"
+version = "0.3.0"
 description = "Backend de la EVA (FastAPI). Plantilla base."
 requires-python = ">=3.12"
 dependencies = [

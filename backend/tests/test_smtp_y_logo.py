@@ -20,7 +20,9 @@ def test_smtp_password_no_se_expone(client: TestClient, admin_headers: dict[str,
 
 
 def test_envio_sin_smtp_configurado(client: TestClient, admin_headers: dict[str, str]) -> None:
-    cliente = client.post("/api/v1/clientes", headers=admin_headers, json={"nombre": "X"}).json()
+    cliente = client.post(
+        "/api/v1/clientes", headers=admin_headers, json={"nombre": "X", "rfc": "XAX010101000"}
+    ).json()
     cot = client.post(
         "/api/v1/cotizaciones",
         headers=admin_headers,

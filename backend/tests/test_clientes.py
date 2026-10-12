@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 
-def test_cliente_consecutivo_y_contactos(client: TestClient, admin_headers: dict[str, str]) -> None:
+def test_cliente_por_rfc_y_contactos(client: TestClient, admin_headers: dict[str, str]) -> None:
     first = client.post(
         "/api/v1/clientes",
         headers=admin_headers,
@@ -14,15 +14,24 @@ def test_cliente_consecutivo_y_contactos(client: TestClient, admin_headers: dict
     )
     assert first.status_code == 201
     body = first.json()
-    assert body["numero_cliente"] == "CLI-0001"
+    assert body["rfc"] == "ACM010101AAA"
+    assert "numero_cliente" not in body
     assert len(body["contactos"]) == 1
 
-    second = client.post("/api/v1/clientes", headers=admin_headers, json={"nombre": "Otra, S.A."})
-    assert second.json()["numero_cliente"] == "CLI-0002"
+
+def test_cliente_rfc_duplicado(client: TestClient, admin_headers: dict[str, str]) -> None:
+    payload = {"nombre": "Uno", "rfc": "XAXX010101000"}
+    assert client.post("/api/v1/clientes", headers=admin_headers, json=payload).status_code == 201
+    duplicated = client.post(
+        "/api/v1/clientes", headers=admin_headers, json={"nombre": "Dos", "rfc": "XAXX010101000"}
+    )
+    assert duplicated.status_code == 409
 
 
 def test_cliente_baja_logica(client: TestClient, admin_headers: dict[str, str]) -> None:
-    created = client.post("/api/v1/clientes", headers=admin_headers, json={"nombre": "Baja"})
+    created = client.post(
+        "/api/v1/clientes", headers=admin_headers, json={"nombre": "Baja", "rfc": "BXX010101000"}
+    )
     cliente_id = created.json()["id"]
     assert client.delete(f"/api/v1/clientes/{cliente_id}", headers=admin_headers).status_code == 204
     activos = client.get("/api/v1/clientes", headers=admin_headers).json()["items"]

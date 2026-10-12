@@ -1,8 +1,10 @@
 from fastapi.testclient import TestClient
 
 
-def _cliente(client: TestClient, headers: dict[str, str]) -> int:
-    return client.post("/api/v1/clientes", headers=headers, json={"nombre": "Cliente Cot"}).json()["id"]
+def _cliente(client: TestClient, headers: dict[str, str], rfc: str = "COT010101AAA") -> int:
+    return client.post(
+        "/api/v1/clientes", headers=headers, json={"nombre": "Cliente Cot", "rfc": rfc}
+    ).json()["id"]
 
 
 def test_cotizacion_calcula_totales(client: TestClient, admin_headers: dict[str, str]) -> None:
@@ -35,7 +37,8 @@ def test_cotizacion_calcula_totales(client: TestClient, admin_headers: dict[str,
     )
     assert response.status_code == 201
     body = response.json()
-    assert body["folio"] == "COT-0001"
+    assert len(body["folio"]) == 8
+    assert body["folio"].isalnum()
     # Bruto servicios = 2000, descuento 10% = 200; materiales = 500 -> subtotal 2500
     assert body["subtotal"] == 2500.0
     assert body["descuento_total"] == 200.0
@@ -48,6 +51,19 @@ def test_cotizacion_cliente_inexistente(client: TestClient, admin_headers: dict[
         "/api/v1/cotizaciones", headers=admin_headers, json={"cliente_id": 999, "items": []}
     )
     assert response.status_code == 404
+
+
+def test_cotizacion_folios_unicos(client: TestClient, admin_headers: dict[str, str]) -> None:
+    cliente_id = _cliente(client, admin_headers)
+    folios = set()
+    for _ in range(5):
+        body = client.post(
+            "/api/v1/cotizaciones",
+            headers=admin_headers,
+            json={"cliente_id": cliente_id, "items": []},
+        ).json()
+        folios.add(body["folio"])
+    assert len(folios) == 5
 
 
 def test_cotizacion_pdf(client: TestClient, admin_headers: dict[str, str]) -> None:

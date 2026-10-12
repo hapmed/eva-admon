@@ -20,7 +20,7 @@ class ContactoRead(ContactoBase):
 
 class ClienteBase(BaseModel):
     nombre: str = Field(min_length=1, max_length=255)
-    rfc: str = Field(default="", max_length=20)
+    rfc: str = Field(min_length=1, max_length=20)
     condiciones_pago: str = ""
     activo: bool = True
 
@@ -31,7 +31,7 @@ class ClienteCreate(ClienteBase):
 
 class ClienteUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=1, max_length=255)
-    rfc: str | None = Field(default=None, max_length=20)
+    rfc: str | None = Field(default=None, min_length=1, max_length=20)
     condiciones_pago: str | None = None
     activo: bool | None = None
     contactos: list[ContactoCreate] | None = None
@@ -41,5 +41,4 @@ class ClienteRead(ClienteBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    numero_cliente: str
     contactos: list[ContactoRead] = Field(default_factory=list)

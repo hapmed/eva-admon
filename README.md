@@ -13,7 +13,7 @@ materiales**, con clientes, usuarios/roles y configuración de la empresa.
 | Módulo | Descripción | Roles |
 |--------|-------------|-------|
 | Dashboard | Indicadores (clientes, usuarios, cotizaciones, total cotizado). | Todos |
-| Clientes | Altas, bajas (desactivación) y cambios; número de cliente consecutivo automático; contactos (nombre y correo). | admin, ventas |
+| Clientes | Altas, bajas (desactivación) y cambios; identificados por **RFC** (único); contactos (nombre y correo). | admin, ventas |
 | Servicios | Catálogo de servicios (código, unidad, precio). | admin, ventas |
 | Materiales | Catálogo de materiales. | admin, ventas |
 | Cotizaciones | Cotizaciones de servicio y materiales con partidas, descuento por partida, IVA configurable, **PDF profesional** (logo y colores de marca) y **envío por correo (SMTP)**. | admin, ventas |
@@ -96,7 +96,7 @@ la API en el mismo puerto.
 | `EVA_JWT_SECRET` | Secreto de firma de los JWT (obligatorio en producción). |
 | `EVA_ADMIN_EMAIL`, `EVA_ADMIN_PASSWORD` | Bootstrap opcional del primer administrador. |
 | `EVA_IVA_PORCENTAJE`, `EVA_MONEDA` | Valores por defecto (editables en Configuración). |
-| `EVA_CLIENTE_PREFIJO`, `EVA_COTIZACION_PREFIJO`, `EVA_CONSECUTIVO_DIGITOS` | Formato de folios. |
+| `EVA_FOLIO_RANDOM_CHARS` | Caracteres aleatorios del folio (base36). Por defecto `2`. |
 | `EVA_LOGO_DIR` | Carpeta donde se guardan los logos subidos. |
 
 > Los secretos se inyectan como variables de entorno. Nunca se versionan ni se
