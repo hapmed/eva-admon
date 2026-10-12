@@ -5,7 +5,7 @@
 code: admon                          # identificador ESTABLE (no cambiar)
 name: HAPMED Admon
 description: Sistema administrativo HAPMED (clientes, usuarios, configuración y cotizaciones).
-image: ghcr.io/hector1516/eva-admon   # repositorio de la imagen (sin tag)
+image: ghcr.io/hapmed/eva-admon       # repositorio de la imagen (sin tag)
 
 versions:
   - version: "0.1.0"
