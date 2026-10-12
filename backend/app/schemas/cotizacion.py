@@ -14,6 +14,7 @@ class ItemIn(BaseModel):
     cantidad: float = Field(gt=0)
     precio_unitario: float = Field(ge=0)
     descuento_porcentaje: float = Field(default=0, ge=0, le=100)
+    tiempo_entrega_dias: int = Field(default=0, ge=0, le=3650)
 
 
 class ItemRead(ItemIn):
@@ -66,6 +67,7 @@ class CotizacionRead(BaseModel):
     descuento_total: float
     iva_total: float
     total: float
+    tiempo_entrega_dias: int = 0
     notas: str
     items: list[ItemRead] = Field(default_factory=list)
 

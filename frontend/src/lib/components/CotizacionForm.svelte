@@ -25,6 +25,7 @@
 		cantidad: number;
 		precio_unitario: number;
 		descuento_porcentaje: number;
+		tiempo_entrega_dias: number;
 	};
 	type Cotizacion = {
 		id: number;
@@ -69,6 +70,9 @@
 	);
 	const ivaTotal = $derived((subtotal - descuento) * (form.iva_porcentaje / 100));
 	const total = $derived(subtotal - descuento + ivaTotal);
+	const tiempoEntrega = $derived(
+		form.items.reduce((max, item) => Math.max(max, Number(item.tiempo_entrega_dias) || 0), 0)
+	);
 
 	onMount(async () => {
 		try {
@@ -111,7 +115,8 @@
 				unidad: '',
 				cantidad: 1,
 				precio_unitario: 0,
-				descuento_porcentaje: 0
+				descuento_porcentaje: 0,
+				tiempo_entrega_dias: 0
 			}
 		];
 	}
@@ -133,7 +138,8 @@
 				unidad: found.unidad,
 				cantidad: 1,
 				precio_unitario: Number(found.precio_unitario),
-				descuento_porcentaje: 0
+				descuento_porcentaje: 0,
+				tiempo_entrega_dias: 0
 			}
 		];
 	}
@@ -157,7 +163,8 @@
 					...i,
 					cantidad: Number(i.cantidad),
 					precio_unitario: Number(i.precio_unitario),
-					descuento_porcentaje: Number(i.descuento_porcentaje)
+					descuento_porcentaje: Number(i.descuento_porcentaje),
+					tiempo_entrega_dias: Number(i.tiempo_entrega_dias)
 				}))
 			};
 			if (cotizacionId) await api.patch(`/cotizaciones/${cotizacionId}`, payload);
@@ -280,6 +287,7 @@
 							<th class="px-2 py-2 font-medium">Cant.</th>
 							<th class="px-2 py-2 font-medium">P. unit.</th>
 							<th class="px-2 py-2 font-medium">Desc. %</th>
+							<th class="px-2 py-2 font-medium">Entrega (d)</th>
 							<th class="px-2 py-2 text-right font-medium">Importe</th>
 							<th></th>
 						</tr>
@@ -326,6 +334,15 @@
 										bind:value={item.descuento_porcentaje}
 									/></td
 								>
+								<td class="px-2 py-2"
+									><input
+										class="{inputClass} w-20"
+										type="number"
+										step="1"
+										min="0"
+										bind:value={item.tiempo_entrega_dias}
+									/></td
+								>
 								<td class="px-2 py-2 text-right">
 									{formatCurrency(
 										item.cantidad * item.precio_unitario * (1 - item.descuento_porcentaje / 100)
@@ -344,7 +361,7 @@
 						{/each}
 						{#if form.items.length === 0}
 							<tr
-								><td colspan="8" class="px-2 py-6 text-center text-ink-3"
+								><td colspan="9" class="px-2 py-6 text-center text-ink-3"
 									>Sin partidas. Agrega una línea o elige del catálogo.</td
 								></tr
 							>
@@ -366,6 +383,10 @@
 					<div class="flex justify-between">
 						<dt class="text-ink-2">IVA {form.iva_porcentaje}%</dt>
 						<dd>{formatCurrency(ivaTotal)}</dd>
+					</div>
+					<div class="flex justify-between">
+						<dt class="text-ink-2">Tiempo de entrega</dt>
+						<dd>{tiempoEntrega} {tiempoEntrega === 1 ? 'día' : 'días'}</dd>
 					</div>
 					<div class="flex justify-between border-t border-line pt-1 text-[16px] font-semibold">
 						<dt>Total</dt>

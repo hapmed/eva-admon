@@ -66,6 +66,7 @@ def _apply_items(cotizacion: Cotizacion, items: list[ItemIn]) -> None:
             precio_unitario=item.precio_unitario,
             descuento_porcentaje=item.descuento_porcentaje,
             importe=item_importe(item),
+            tiempo_entrega_dias=item.tiempo_entrega_dias,
         )
         for item in items
     ]
@@ -78,6 +79,7 @@ def _recalc(cotizacion: Cotizacion, items: list[ItemIn]) -> None:
     cotizacion.descuento_total = float(result["descuento_total"])
     cotizacion.iva_total = float(result["iva_total"])
     cotizacion.total = float(result["total"])
+    cotizacion.tiempo_entrega_dias = max((i.tiempo_entrega_dias for i in items), default=0)
 
 
 def create_cotizacion(db: Session, data: CotizacionCreate, user_id: int | None) -> Cotizacion:

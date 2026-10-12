@@ -66,6 +66,35 @@ def test_cotizacion_folios_unicos(client: TestClient, admin_headers: dict[str, s
     assert len(folios) == 5
 
 
+def test_tiempo_entrega_general_es_el_mayor(client: TestClient, admin_headers: dict[str, str]) -> None:
+    cliente_id = _cliente(client, admin_headers)
+    body = client.post(
+        "/api/v1/cotizaciones",
+        headers=admin_headers,
+        json={
+            "cliente_id": cliente_id,
+            "items": [
+                {
+                    "tipo": "servicio",
+                    "descripcion": "A",
+                    "cantidad": 1,
+                    "precio_unitario": 100,
+                    "tiempo_entrega_dias": 5,
+                },
+                {
+                    "tipo": "material",
+                    "descripcion": "B",
+                    "cantidad": 1,
+                    "precio_unitario": 100,
+                    "tiempo_entrega_dias": 12,
+                },
+            ],
+        },
+    ).json()
+    assert body["tiempo_entrega_dias"] == 12
+    assert body["items"][0]["tiempo_entrega_dias"] == 5
+
+
 def test_cotizacion_pdf(client: TestClient, admin_headers: dict[str, str]) -> None:
     cliente_id = _cliente(client, admin_headers)
     created = client.post(

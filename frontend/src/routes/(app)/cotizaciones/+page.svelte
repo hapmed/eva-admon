@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Download, Mail, Pencil, Trash2 } from '@lucide/svelte';
+	import { Download, Eye, Mail, Pencil, Share2, Trash2 } from '@lucide/svelte';
 	import { ApiError, api } from '../../../lib/api/client';
 	import Button from '../../../lib/components/Button.svelte';
 	import DataTable from '../../../lib/components/DataTable.svelte';
@@ -76,10 +76,45 @@
 		try {
 			const blob = await api.blob(`/cotizaciones/${cotizacion.id}/pdf`);
 			const url = URL.createObjectURL(blob);
-			window.open(url, '_blank');
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = `cotizacion-${cotizacion.folio}.pdf`;
+			link.click();
 			setTimeout(() => URL.revokeObjectURL(url), 10000);
 		} catch {
 			error = 'No se pudo generar el PDF.';
+		}
+	}
+
+	async function previewPdf(cotizacion: Cotizacion) {
+		try {
+			const blob = await api.blob(`/cotizaciones/${cotizacion.id}/pdf`);
+			const url = URL.createObjectURL(blob);
+			window.open(url, '_blank');
+			setTimeout(() => URL.revokeObjectURL(url), 60000);
+		} catch {
+			error = 'No se pudo generar el PDF.';
+		}
+	}
+
+	async function compartirPdf(cotizacion: Cotizacion) {
+		try {
+			const blob = await api.blob(`/cotizaciones/${cotizacion.id}/pdf`);
+			const filename = `cotizacion-${cotizacion.folio}.pdf`;
+			const file = new File([blob], filename, { type: 'application/pdf' });
+			const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+			if (nav.share && nav.canShare?.({ files: [file] })) {
+				await nav.share({ files: [file], title: `Cotización ${cotizacion.folio}` });
+			} else {
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = filename;
+				link.click();
+				setTimeout(() => URL.revokeObjectURL(url), 10000);
+			}
+		} catch (err) {
+			if ((err as Error).name !== 'AbortError') error = 'No se pudo compartir el PDF.';
 		}
 	}
 
@@ -189,7 +224,7 @@
 			{#snippet actions(row)}
 				{@const item = cotizaciones.find((c) => c.id === (row as { id: number }).id)}
 				{#if item}
-					<div class="flex items-center justify-end gap-1">
+					<div class="flex flex-wrap items-center justify-end gap-1">
 						<StatusBadge status={estados[item.estado].status} label={estados[item.estado].label} />
 						<a
 							href={`/cotizaciones/${item.id}`}
@@ -200,17 +235,31 @@
 						</a>
 						<button
 							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"
+							title="Preview del PDF"
+							onclick={() => previewPdf(item)}
+						>
+							<Eye size={16} aria-hidden="true" />
+						</button>
+						<button
+							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"
+							title="Descargar PDF"
+							onclick={() => descargarPdf(item)}
+						>
+							<Download size={16} aria-hidden="true" />
+						</button>
+						<button
+							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"
+							title="Compartir PDF"
+							onclick={() => compartirPdf(item)}
+						>
+							<Share2 size={16} aria-hidden="true" />
+						</button>
+						<button
+							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"
 							title="Enviar por correo"
 							onclick={() => openSend(item)}
 						>
 							<Mail size={16} aria-hidden="true" />
-						</button>
-						<button
-							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"
-							title="PDF"
-							onclick={() => descargarPdf(item)}
-						>
-							<Download size={16} aria-hidden="true" />
 						</button>
 						<button
 							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] text-danger hover:bg-surface-2"

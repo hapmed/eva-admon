@@ -15,7 +15,7 @@ DEFAULT_SECONDARY = (0, 194, 184)
 DEFAULT_LOGO = Path(__file__).resolve().parent.parent / "assets" / "logo-hapmed.png"
 _MARGIN = 15
 _USABLE = 210 - 2 * _MARGIN
-_WIDTHS = [84, 16, 16, 24, 14, 26]  # desc, unidad, cant, precio, desc, importe
+_WIDTHS = [72, 14, 14, 22, 12, 18, 28]  # desc, unidad, cant, precio, desc, entrega, importe
 
 
 def _safe(text: str | None) -> str:
@@ -158,6 +158,7 @@ def _parties(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) -
     for label, value in [
         ("Fecha", cotizacion.fecha.isoformat()),
         ("Valida hasta", cotizacion.valida_hasta.isoformat() if cotizacion.valida_hasta else "-"),
+        ("Entrega", f"{cotizacion.tiempo_entrega_dias} dias" if cotizacion.tiempo_entrega_dias else "-"),
         ("Estado", cotizacion.estado.capitalize()),
     ]:
         pdf.set_xy(_MARGIN + 110, meta_y)
@@ -176,7 +177,7 @@ def _items(
     primary: tuple[int, int, int],
     secondary: tuple[int, int, int],
 ) -> None:
-    header = ["Descripcion", "Unidad", "Cant.", "P. unit.", "Desc.", "Importe"]
+    header = ["Descripcion", "Unidad", "Cant.", "P. unit.", "Desc.", "Entrega", "Importe"]
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(*primary)
     pdf.set_text_color(255, 255, 255)
@@ -224,7 +225,8 @@ def _item_row(pdf: FPDF, item, primary: tuple[int, int, int], fill: tuple[int, i
         (f"{float(item.cantidad):g}", "C", _WIDTHS[2]),
         (_money(item.precio_unitario), "R", _WIDTHS[3]),
         (f"{float(item.descuento_porcentaje):g}%", "R", _WIDTHS[4]),
-        (_money(item.importe), "R", _WIDTHS[5]),
+        (f"{item.tiempo_entrega_dias}d" if item.tiempo_entrega_dias else "-", "C", _WIDTHS[5]),
+        (_money(item.importe), "R", _WIDTHS[6]),
     ]
     cx = x0 + _WIDTHS[0]
     pdf.set_xy(cx, y0 + 1)

@@ -3,7 +3,7 @@
 from datetime import date
 from enum import StrEnum
 
-from sqlalchemy import Date, ForeignKey, Numeric, String, Text
+from sqlalchemy import Date, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -38,6 +38,8 @@ class Cotizacion(TimestampMixin, Base):
     descuento_total: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     iva_total: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     total: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    # Tiempo de entrega general = el mayor de las partidas (días).
+    tiempo_entrega_dias: Mapped[int] = mapped_column(Integer, default=0)
     notas: Mapped[str] = mapped_column(Text, default="")
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("usuario.id"), nullable=True
@@ -65,5 +67,7 @@ class CotizacionItem(TimestampMixin, Base):
     precio_unitario: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     descuento_porcentaje: Mapped[float] = mapped_column(Numeric(5, 2), default=0)
     importe: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
+    # Tiempo de entrega de esta partida (días).
+    tiempo_entrega_dias: Mapped[int] = mapped_column(Integer, default=0)
 
     cotizacion: Mapped[Cotizacion] = relationship(back_populates="items")
