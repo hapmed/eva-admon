@@ -25,10 +25,10 @@ def test_cliente_baja_logica(client: TestClient, admin_headers: dict[str, str]) 
     created = client.post("/api/v1/clientes", headers=admin_headers, json={"nombre": "Baja"})
     cliente_id = created.json()["id"]
     assert client.delete(f"/api/v1/clientes/{cliente_id}", headers=admin_headers).status_code == 204
-    activos = client.get("/api/v1/clientes", headers=admin_headers).json()
+    activos = client.get("/api/v1/clientes", headers=admin_headers).json()["items"]
     assert all(c["id"] != cliente_id for c in activos)
-    todos = client.get("/api/v1/clientes?include_inactive=true", headers=admin_headers).json()
-    assert any(c["id"] == cliente_id for c in todos)
+    inactivos = client.get("/api/v1/clientes?activo=false", headers=admin_headers).json()["items"]
+    assert any(c["id"] == cliente_id for c in inactivos)
 
 
 def test_cliente_no_encontrado(client: TestClient, admin_headers: dict[str, str]) -> None:

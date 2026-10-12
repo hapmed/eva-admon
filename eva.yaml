@@ -10,6 +10,8 @@ image: ghcr.io/hapmed/eva-admon       # repositorio de la imagen (sin tag)
 versions:
   - version: "0.1.0"
     status: approved
+  - version: "0.2.0"
+    status: approved
 
 port: 8000
 healthcheck: /healthz

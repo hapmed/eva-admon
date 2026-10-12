@@ -1,13 +1,15 @@
 """Gestión de usuarios y roles (solo administradores)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.pagination import paginate
 from app.core.roles import Role
 from app.core.security import hash_password
 from app.deps import get_session, require_roles
 from app.models.usuario import Usuario
+from app.schemas.common import Page
 from app.schemas.usuario import UsuarioCreate, UsuarioRead, UsuarioUpdate
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
@@ -29,9 +31,27 @@ def _ensure_email_free(db: Session, email: str, exclude_id: int | None = None) -
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El correo ya está registrado")
 
 
-@router.get("", response_model=list[UsuarioRead], summary="Listar usuarios")
-def list_usuarios(db: Session = Depends(get_session), _: Usuario = Depends(_admin)) -> list[Usuario]:
-    return list(db.scalars(select(Usuario).order_by(Usuario.id)))
+@router.get("", response_model=Page[UsuarioRead], summary="Listar usuarios")
+def list_usuarios(
+    search: str | None = Query(default=None),
+    rol: Role | None = Query(default=None),
+    activo: bool | None = Query(default=True),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1),
+    db: Session = Depends(get_session),
+    _: Usuario = Depends(_admin),
+) -> dict:
+    stmt = select(Usuario)
+    if rol is not None:
+        stmt = stmt.where(Usuario.rol == rol)
+    if activo is not None:
+        stmt = stmt.where(Usuario.activo.is_(activo))
+    if search:
+        like = f"%{search.lower()}%"
+        stmt = stmt.where(
+            func.lower(Usuario.nombre).like(like) | func.lower(Usuario.email).like(like)
+        )
+    return paginate(db, stmt.order_by(Usuario.id), page, page_size)
 
 
 @router.post("", response_model=UsuarioRead, status_code=status.HTTP_201_CREATED, summary="Crear usuario")

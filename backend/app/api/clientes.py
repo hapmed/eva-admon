@@ -3,12 +3,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.pagination import paginate
 from app.core.roles import Role
 from app.deps import current_user, get_session, require_roles
 from app.models.cliente import Cliente
 from app.models.usuario import Usuario
 from app.schemas.cliente import ClienteCreate, ClienteRead, ClienteUpdate
-from app.services.clientes import create_cliente, list_clientes, update_cliente
+from app.schemas.common import Page
+from app.services.clientes import clientes_query, create_cliente, update_cliente
 
 router = APIRouter(prefix="/clientes", tags=["clientes"])
 _writer = require_roles(Role.ADMIN, Role.VENTAS)
@@ -21,14 +23,16 @@ def _get(db: Session, cliente_id: int) -> Cliente:
     return cliente
 
 
-@router.get("", response_model=list[ClienteRead], summary="Listar clientes")
+@router.get("", response_model=Page[ClienteRead], summary="Listar clientes")
 def get_clientes(
     search: str | None = Query(default=None),
-    include_inactive: bool = Query(default=False),
+    activo: bool | None = Query(default=True),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1),
     db: Session = Depends(get_session),
     _: Usuario = Depends(current_user),
-) -> list[Cliente]:
-    return list_clientes(db, search=search, include_inactive=include_inactive)
+) -> dict:
+    return paginate(db, clientes_query(search=search, activo=activo), page, page_size)
 
 
 @router.post("", response_model=ClienteRead, status_code=status.HTTP_201_CREATED, summary="Crear cliente")

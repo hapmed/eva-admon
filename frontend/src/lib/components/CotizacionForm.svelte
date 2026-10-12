@@ -4,6 +4,7 @@
 	import { Plus, Trash2 } from '@lucide/svelte';
 	import { ApiError, api } from '../api/client';
 	import { formatCurrency } from '../format';
+	import type { Page } from '../types';
 	import { inputClass, labelClass, labelTextClass } from '../ui';
 	import Button from './Button.svelte';
 	import InlineAlert from './InlineAlert.svelte';
@@ -72,14 +73,14 @@
 	onMount(async () => {
 		try {
 			const [cs, ss, ms, config] = await Promise.all([
-				api.get<Cliente[]>('/clientes'),
-				api.get<Catalogo[]>('/servicios'),
-				api.get<Catalogo[]>('/materiales'),
+				api.get<Page<Cliente>>('/clientes?page_size=100&activo=true'),
+				api.get<Page<Catalogo>>('/servicios?page_size=100&activo=true'),
+				api.get<Page<Catalogo>>('/materiales?page_size=100&activo=true'),
 				api.get<{ iva_porcentaje: number }>('/configuracion')
 			]);
-			clientes = cs;
-			servicios = ss.filter((s) => s);
-			materiales = ms.filter((m) => m);
+			clientes = cs.items;
+			servicios = ss.items;
+			materiales = ms.items;
 			form.iva_porcentaje = Number(config.iva_porcentaje ?? 16);
 			if (cotizacionId) {
 				const cot = await api.get<Cotizacion>(`/cotizaciones/${cotizacionId}`);

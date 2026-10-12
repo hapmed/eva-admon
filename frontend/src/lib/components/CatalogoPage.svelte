@@ -2,12 +2,14 @@
 	import { onMount } from 'svelte';
 	import { Pencil, Trash2 } from '@lucide/svelte';
 	import { ApiError, api } from '../api/client';
+	import type { Page } from '../types';
 	import { inputClass, labelClass, labelTextClass } from '../ui';
 	import Button from './Button.svelte';
 	import DataTable from './DataTable.svelte';
 	import InlineAlert from './InlineAlert.svelte';
 	import Modal from './Modal.svelte';
 	import PageHeader from './PageHeader.svelte';
+	import Paginator from './Paginator.svelte';
 
 	type Item = {
 		id: number;
@@ -27,9 +29,13 @@
 	}: { title: string; subtitle: string; endpoint: string; unidadDefault: string } = $props();
 
 	let items = $state<Item[]>([]);
+	let total = $state(0);
+	let pages = $state(0);
+	let page = $state(1);
 	let loading = $state(true);
 	let error = $state('');
 	let search = $state('');
+	let activo = $state('true');
 
 	let showForm = $state(false);
 	let saving = $state(false);
@@ -44,20 +50,29 @@
 		activo: true
 	});
 
-	async function load() {
+	async function load(targetPage = 1) {
 		loading = true;
 		error = '';
+		page = targetPage;
 		try {
-			const query = search ? `?search=${encodeURIComponent(search)}` : '';
-			items = await api.get<Item[]>(`${endpoint}${query}`);
+			const params = new URLSearchParams({
+				page: String(targetPage),
+				page_size: '20',
+				activo
+			});
+			if (search) params.set('search', search);
+			const data = await api.get<Page<Item>>(`${endpoint}?${params.toString()}`);
+			items = data.items;
+			total = data.total;
+			pages = data.pages;
 		} catch {
-			error = `No se pudieron cargar los registros.`;
+			error = 'No se pudieron cargar los registros.';
 		} finally {
 			loading = false;
 		}
 	}
 
-	onMount(load);
+	onMount(() => load(1));
 
 	function openCreate() {
 		editingId = null;
@@ -94,7 +109,7 @@
 			if (editingId) await api.patch(`${endpoint}/${editingId}`, form);
 			else await api.post(endpoint, form);
 			showForm = false;
-			await load();
+			await load(page);
 		} catch (err) {
 			formError = err instanceof ApiError ? err.message : 'No se pudo guardar.';
 		} finally {
@@ -105,7 +120,7 @@
 	async function desactivar(item: Item) {
 		if (!confirm(`¿Desactivar «${item.nombre}»?`)) return;
 		await api.delete(`${endpoint}/${item.id}`);
-		await load();
+		await load(page);
 	}
 </script>
 
@@ -116,12 +131,21 @@
 </PageHeader>
 
 <div class="mt-6 flex flex-col gap-4">
-	<input
-		class="{inputClass} max-w-sm"
-		placeholder="Buscar por nombre o código"
-		bind:value={search}
-		oninput={load}
-	/>
+	<div class="flex flex-wrap items-end gap-3">
+		<input
+			class="{inputClass} max-w-sm"
+			placeholder="Buscar por nombre o código"
+			bind:value={search}
+			oninput={() => load(1)}
+		/>
+		<label class="flex flex-col gap-1 text-[14px]">
+			<span class={labelTextClass}>Estado</span>
+			<select class={inputClass} bind:value={activo} onchange={() => load(1)}>
+				<option value="true">Activos</option>
+				<option value="false">Inactivos</option>
+			</select>
+		</label>
+	</div>
 
 	{#if error}<InlineAlert tone="error">{error}</InlineAlert>{/if}
 
@@ -159,6 +183,7 @@
 				</div>
 			{/snippet}
 		</DataTable>
+		<Paginator {page} {pages} {total} onPage={load} />
 	{/if}
 </div>
 

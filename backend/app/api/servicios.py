@@ -5,11 +5,13 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.pagination import paginate
 from app.core.roles import Role
 from app.deps import current_user, get_session, require_roles
 from app.models.catalogo import Servicio
 from app.models.usuario import Usuario
 from app.schemas.catalogo import CatalogoCreate, CatalogoRead, CatalogoUpdate
+from app.schemas.common import Page
 
 router = APIRouter(prefix="/servicios", tags=["servicios"])
 _writer = require_roles(Role.ADMIN, Role.VENTAS)
@@ -22,17 +24,24 @@ def _get(db: Session, item_id: int) -> Servicio:
     return item
 
 
-@router.get("", response_model=list[CatalogoRead], summary="Listar servicios")
+@router.get("", response_model=Page[CatalogoRead], summary="Listar servicios")
 def list_servicios(
     search: str | None = Query(default=None),
+    activo: bool | None = Query(default=True),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1),
     db: Session = Depends(get_session),
     _: Usuario = Depends(current_user),
-) -> list[Servicio]:
+) -> dict:
     stmt = select(Servicio)
+    if activo is not None:
+        stmt = stmt.where(Servicio.activo.is_(activo))
     if search:
         like = f"%{search.lower()}%"
-        stmt = stmt.where(func.lower(Servicio.nombre).like(like) | func.lower(Servicio.codigo).like(like))
-    return list(db.scalars(stmt.order_by(Servicio.codigo)))
+        stmt = stmt.where(
+            func.lower(Servicio.nombre).like(like) | func.lower(Servicio.codigo).like(like)
+        )
+    return paginate(db, stmt.order_by(Servicio.codigo), page, page_size)
 
 
 @router.post("", response_model=CatalogoRead, status_code=status.HTTP_201_CREATED, summary="Crear servicio")
@@ -45,9 +54,7 @@ def create_servicio(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="El código ya existe"
-        ) from None
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El código ya existe") from None
     db.refresh(item)
     return item
 
@@ -66,9 +73,7 @@ def update_servicio(
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="El código ya existe"
-        ) from None
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El código ya existe") from None
     db.refresh(item)
     return item
 

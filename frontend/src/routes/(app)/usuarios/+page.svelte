@@ -9,7 +9,9 @@
 	import InlineAlert from '../../../lib/components/InlineAlert.svelte';
 	import Modal from '../../../lib/components/Modal.svelte';
 	import PageHeader from '../../../lib/components/PageHeader.svelte';
+	import Paginator from '../../../lib/components/Paginator.svelte';
 	import StatusBadge from '../../../lib/components/StatusBadge.svelte';
+	import type { Page } from '../../../lib/types';
 	import { inputClass, labelClass, labelTextClass } from '../../../lib/ui';
 
 	type Usuario = {
@@ -21,8 +23,13 @@
 	};
 
 	let usuarios = $state<Usuario[]>([]);
+	let total = $state(0);
+	let pages = $state(0);
+	let page = $state(1);
 	let loading = $state(true);
 	let error = $state('');
+	let search = $state('');
+	let rol = $state('');
 
 	let showForm = $state(false);
 	let saving = $state(false);
@@ -38,11 +45,18 @@
 
 	const isAdmin = $derived($user?.rol === 'admin');
 
-	async function load() {
+	async function load(targetPage = 1) {
 		loading = true;
 		error = '';
+		page = targetPage;
 		try {
-			usuarios = await api.get<Usuario[]>('/usuarios');
+			const params = new URLSearchParams({ page: String(targetPage), page_size: '20' });
+			if (search) params.set('search', search);
+			if (rol) params.set('rol', rol);
+			const data = await api.get<Page<Usuario>>(`/usuarios?${params.toString()}`);
+			usuarios = data.items;
+			total = data.total;
+			pages = data.pages;
 		} catch {
 			error = 'No se pudieron cargar los usuarios.';
 		} finally {
@@ -51,7 +65,7 @@
 	}
 
 	onMount(() => {
-		if (isAdmin) load();
+		if (isAdmin) load(1);
 		else loading = false;
 	});
 
@@ -92,7 +106,7 @@
 				await api.post('/usuarios', form);
 			}
 			showForm = false;
-			await load();
+			await load(page);
 		} catch (err) {
 			formError = err instanceof ApiError ? err.message : 'No se pudo guardar el usuario.';
 		} finally {
@@ -104,7 +118,7 @@
 		if (!confirm(`¿Desactivar a ${usuario.nombre}?`)) return;
 		try {
 			await api.delete(`/usuarios/${usuario.id}`);
-			await load();
+			await load(page);
 		} catch (err) {
 			error = err instanceof ApiError ? err.message : 'No se pudo desactivar.';
 		}
@@ -124,6 +138,24 @@
 	</PageHeader>
 
 	<div class="mt-6 flex flex-col gap-4">
+		<div class="flex flex-wrap items-end gap-3">
+			<input
+				class="{inputClass} max-w-sm"
+				placeholder="Buscar por nombre o correo"
+				bind:value={search}
+				oninput={() => load(1)}
+			/>
+			<label class="flex flex-col gap-1 text-[14px]">
+				<span class={labelTextClass}>Rol</span>
+				<select class={inputClass} bind:value={rol} onchange={() => load(1)}>
+					<option value="">Todos</option>
+					<option value="admin">Administrador</option>
+					<option value="ventas">Ventas</option>
+					<option value="consulta">Consulta</option>
+				</select>
+			</label>
+		</div>
+
 		{#if error}<InlineAlert tone="error">{error}</InlineAlert>{/if}
 
 		{#if loading}
@@ -163,6 +195,7 @@
 					</div>
 				{/snippet}
 			</DataTable>
+			<Paginator {page} {pages} {total} onPage={load} />
 		{/if}
 	</div>
 

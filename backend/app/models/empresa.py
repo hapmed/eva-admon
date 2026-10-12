@@ -1,6 +1,6 @@
 """Configuración de la empresa emisora (registro único)."""
 
-from sqlalchemy import Numeric, String
+from sqlalchemy import Boolean, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -20,6 +20,20 @@ class EmpresaConfig(TimestampMixin, Base):
 
     logo_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     logo_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Colores de marca (extraídos del logo o definidos manualmente).
+    color_primary: Mapped[str] = mapped_column(String(7), default="")
+    color_secondary: Mapped[str] = mapped_column(String(7), default="")
+
+    # SMTP (por cliente/instalación). La contraseña se guarda en la BD del cliente.
+    smtp_activo: Mapped[bool] = mapped_column(Boolean, default=False)
+    smtp_host: Mapped[str] = mapped_column(String(255), default="")
+    smtp_port: Mapped[int] = mapped_column(Integer, default=587)
+    smtp_security: Mapped[str] = mapped_column(String(10), default="tls")
+    smtp_username: Mapped[str] = mapped_column(String(255), default="")
+    smtp_password: Mapped[str] = mapped_column(String(255), default="")
+    smtp_from_email: Mapped[str] = mapped_column(String(255), default="")
+    smtp_from_name: Mapped[str] = mapped_column(String(255), default="")
 
     iva_porcentaje: Mapped[float] = mapped_column(Numeric(5, 2), default=16)
     moneda: Mapped[str] = mapped_column(String(3), default="MXN")

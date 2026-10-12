@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.cotizacion import EstadoCotizacion, TipoItem
 
@@ -79,3 +79,10 @@ class CotizacionListItem(BaseModel):
     fecha: date
     estado: EstadoCotizacion
     total: float
+
+
+class CotizacionEnviarRequest(BaseModel):
+    destinatarios: list[EmailStr] = Field(min_length=1)
+    cc: list[EmailStr] = Field(default_factory=list)
+    asunto: str | None = None
+    mensaje: str | None = None

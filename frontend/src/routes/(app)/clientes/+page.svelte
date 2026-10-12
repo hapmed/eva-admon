@@ -7,6 +7,8 @@
 	import InlineAlert from '../../../lib/components/InlineAlert.svelte';
 	import Modal from '../../../lib/components/Modal.svelte';
 	import PageHeader from '../../../lib/components/PageHeader.svelte';
+	import Paginator from '../../../lib/components/Paginator.svelte';
+	import type { Page } from '../../../lib/types';
 	import { inputClass, labelClass, labelTextClass } from '../../../lib/ui';
 
 	type Contacto = { id?: number; nombre: string; email: string };
@@ -21,9 +23,13 @@
 	};
 
 	let clientes = $state<Cliente[]>([]);
+	let total = $state(0);
+	let pages = $state(0);
+	let page = $state(1);
 	let loading = $state(true);
 	let error = $state('');
 	let search = $state('');
+	let activo = $state('true');
 
 	let showForm = $state(false);
 	let saving = $state(false);
@@ -37,12 +43,21 @@
 		contactos: [] as Contacto[]
 	});
 
-	async function load() {
+	async function load(targetPage = 1) {
 		loading = true;
 		error = '';
+		page = targetPage;
 		try {
-			const query = search ? `?search=${encodeURIComponent(search)}` : '';
-			clientes = await api.get<Cliente[]>(`/clientes${query}`);
+			const params = new URLSearchParams({
+				page: String(targetPage),
+				page_size: '20',
+				activo
+			});
+			if (search) params.set('search', search);
+			const data = await api.get<Page<Cliente>>(`/clientes?${params.toString()}`);
+			clientes = data.items;
+			total = data.total;
+			pages = data.pages;
 		} catch {
 			error = 'No se pudieron cargar los clientes.';
 		} finally {
@@ -50,7 +65,7 @@
 		}
 	}
 
-	onMount(load);
+	onMount(() => load(1));
 
 	function openCreate() {
 		editingId = null;
@@ -94,7 +109,7 @@
 			if (editingId) await api.patch(`/clientes/${editingId}`, payload);
 			else await api.post('/clientes', payload);
 			showForm = false;
-			await load();
+			await load(page);
 		} catch (err) {
 			formError = err instanceof ApiError ? err.message : 'No se pudo guardar el cliente.';
 		} finally {
@@ -105,7 +120,7 @@
 	async function desactivar(cliente: Cliente) {
 		if (!confirm(`¿Desactivar al cliente ${cliente.nombre}?`)) return;
 		await api.delete(`/clientes/${cliente.id}`);
-		await load();
+		await load(page);
 	}
 </script>
 
@@ -116,12 +131,21 @@
 </PageHeader>
 
 <div class="mt-6 flex flex-col gap-4">
-	<input
-		class="{inputClass} max-w-sm"
-		placeholder="Buscar por nombre, número o RFC"
-		bind:value={search}
-		oninput={load}
-	/>
+	<div class="flex flex-wrap items-end gap-3">
+		<input
+			class="{inputClass} max-w-sm"
+			placeholder="Buscar por nombre, número o RFC"
+			bind:value={search}
+			oninput={() => load(1)}
+		/>
+		<label class="flex flex-col gap-1 text-[14px]">
+			<span class={labelTextClass}>Estado</span>
+			<select class={inputClass} bind:value={activo} onchange={() => load(1)}>
+				<option value="true">Activos</option>
+				<option value="false">Inactivos</option>
+			</select>
+		</label>
+	</div>
 
 	{#if error}<InlineAlert tone="error">{error}</InlineAlert>{/if}
 
@@ -159,6 +183,7 @@
 				</div>
 			{/snippet}
 		</DataTable>
+		<Paginator {page} {pages} {total} onPage={load} />
 	{/if}
 </div>
 

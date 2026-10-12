@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     # Carpeta del frontend compilado (SPA). Vacío = no se sirve (desarrollo).
     static_dir: str = ""
 
+    # Paginación.
+    page_size_default: int = 20
+    page_size_max: int = 100
+
     @property
     def is_local(self) -> bool:
         return self.environment in {"local", "test"}

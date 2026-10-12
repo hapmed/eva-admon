@@ -16,7 +16,7 @@ def test_servicio_crud_y_codigo_duplicado(client: TestClient, admin_headers: dic
     )
     assert duplicated.status_code == 409
 
-    listed = client.get("/api/v1/servicios", headers=admin_headers).json()
+    listed = client.get("/api/v1/servicios", headers=admin_headers).json()["items"]
     assert any(s["codigo"] == "SRV-001" for s in listed)
 
 

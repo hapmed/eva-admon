@@ -16,9 +16,11 @@ materiales**, con clientes, usuarios/roles y configuración de la empresa.
 | Clientes | Altas, bajas (desactivación) y cambios; número de cliente consecutivo automático; contactos (nombre y correo). | admin, ventas |
 | Servicios | Catálogo de servicios (código, unidad, precio). | admin, ventas |
 | Materiales | Catálogo de materiales. | admin, ventas |
-| Cotizaciones | Cotizaciones de servicio y materiales con partidas, descuento por partida, IVA configurable y **PDF descargable**. | admin, ventas |
+| Cotizaciones | Cotizaciones de servicio y materiales con partidas, descuento por partida, IVA configurable, **PDF profesional** (logo y colores de marca) y **envío por correo (SMTP)**. | admin, ventas |
 | Usuarios | Usuarios y roles (`admin`, `ventas`, `consulta`). | admin |
-| Configuración | Razón social, nombre comercial, logo, RFC, teléfono, correo, WhatsApp, IVA y moneda. | admin |
+| Configuración | Razón social, nombre comercial, logo, RFC, teléfono, correo, WhatsApp, IVA, moneda, **SMTP por cliente** y **colores de marca** del PDF. | admin |
+
+Los listados incluyen **paginación** (servidor) y **filtros** (búsqueda, estado, rol, fechas).
 
 Roles: `admin` (todo), `ventas` (catálogos y cotizaciones), `consulta` (solo lectura).
 

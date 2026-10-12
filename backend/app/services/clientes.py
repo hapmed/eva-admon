@@ -8,10 +8,12 @@ from app.schemas.cliente import ClienteCreate, ClienteUpdate, ContactoCreate
 from app.services.folios import next_cliente_numero
 
 
-def list_clientes(db: Session, search: str | None = None, include_inactive: bool = False) -> list[Cliente]:
+def clientes_query(search: str | None = None, activo: bool | None = None):
     stmt = select(Cliente)
-    if not include_inactive:
+    if activo is True:
         stmt = stmt.where(Cliente.activo.is_(True))
+    elif activo is False:
+        stmt = stmt.where(Cliente.activo.is_(False))
     if search:
         like = f"%{search.lower()}%"
         stmt = stmt.where(
@@ -19,7 +21,7 @@ def list_clientes(db: Session, search: str | None = None, include_inactive: bool
             | func.lower(Cliente.numero_cliente).like(like)
             | func.lower(Cliente.rfc).like(like)
         )
-    return list(db.scalars(stmt.order_by(Cliente.numero_cliente)))
+    return stmt.order_by(Cliente.numero_cliente)
 
 
 def create_cliente(db: Session, data: ClienteCreate) -> Cliente:
@@ -50,6 +52,4 @@ def update_cliente(db: Session, cliente: Cliente, data: ClienteUpdate) -> Client
 
 
 def _set_contactos(cliente: Cliente, contactos: list[ContactoCreate]) -> None:
-    cliente.contactos = [
-        ContactoCliente(nombre=c.nombre, email=c.email) for c in contactos
-    ]
+    cliente.contactos = [ContactoCliente(nombre=c.nombre, email=c.email) for c in contactos]

@@ -1,4 +1,4 @@
-"""Configuración de la empresa emisora y su logo."""
+"""Configuración de la empresa emisora, logo, colores y SMTP."""
 
 import re
 import secrets
@@ -13,13 +13,25 @@ from app.core.roles import Role
 from app.deps import current_user, get_session, require_roles
 from app.models.empresa import EmpresaConfig
 from app.models.usuario import Usuario
-from app.schemas.empresa import EmpresaRead, EmpresaUpdate
+from app.schemas.empresa import EmpresaRead, EmpresaUpdate, SmtpTestRequest
+from app.services.logo_colors import extract_colors
+from app.services.mailer import MailError, send_email
 
 router = APIRouter(prefix="/configuracion", tags=["configuracion"])
 _admin = require_roles(Role.ADMIN)
 
 _ALLOWED_TYPES = {"image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp"}
 _MAX_LOGO_BYTES = 2 * 1024 * 1024
+_SMTP_FIELDS = (
+    "smtp_activo",
+    "smtp_host",
+    "smtp_port",
+    "smtp_security",
+    "smtp_username",
+    "smtp_password",
+    "smtp_from_email",
+    "smtp_from_name",
+)
 
 
 def get_or_create(db: Session) -> EmpresaConfig:
@@ -36,6 +48,7 @@ def get_or_create(db: Session) -> EmpresaConfig:
 def _to_read(config: EmpresaConfig) -> EmpresaRead:
     data = EmpresaRead.model_validate(config)
     data.tiene_logo = bool(config.logo_filename)
+    data.smtp_password_set = bool(config.smtp_password)
     return data
 
 
@@ -52,13 +65,16 @@ def update_configuracion(
 ) -> EmpresaRead:
     config = get_or_create(db)
     for field, value in data.model_dump(exclude_unset=True).items():
-        setattr(config, field, value)
+        if field == "smtp_password" and value == "":
+            continue  # vacío = no cambiar la contraseña
+        if value is not None:
+            setattr(config, field, value)
     db.commit()
     db.refresh(config)
     return _to_read(config)
 
 
-@router.post("/logo", response_model=EmpresaRead, summary="Subir logo")
+@router.post("/logo", response_model=EmpresaRead, summary="Subir logo (extrae colores)")
 async def upload_logo(
     file: UploadFile = File(...),
     db: Session = Depends(get_session),
@@ -87,6 +103,12 @@ async def upload_logo(
             old.unlink(missing_ok=True)
     config.logo_filename = filename
     config.logo_content_type = file.content_type
+
+    primary, secondary = extract_colors(content)
+    if primary:
+        config.color_primary = primary
+        config.color_secondary = secondary or primary
+
     db.commit()
     db.refresh(config)
     return _to_read(config)
@@ -102,3 +124,23 @@ def download_logo(db: Session = Depends(get_session)) -> FileResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sin logo")
     media_type = re.sub(r"[^a-zA-Z0-9/+.-]", "", config.logo_content_type or "image/png")
     return FileResponse(path, media_type=media_type, filename=config.logo_filename)
+
+
+@router.post("/smtp/test", summary="Enviar correo de prueba (SMTP)")
+def test_smtp(
+    data: SmtpTestRequest, db: Session = Depends(get_session), _: Usuario = Depends(_admin)
+) -> dict[str, str]:
+    config = get_or_create(db)
+    try:
+        send_email(
+            config,
+            to=[str(data.destino)],
+            subject="Prueba de configuración SMTP - HAPMED",
+            body=(
+                "Este es un correo de prueba enviado desde la EVA Admon.\n\n"
+                "Si lo recibes, la configuración SMTP funciona correctamente."
+            ),
+        )
+    except MailError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return {"status": "ok", "mensaje": "Correo de prueba enviado."}
