@@ -1,5 +1,6 @@
 import type { Component } from 'svelte';
 import {
+	Calculator,
 	FileText,
 	LayoutDashboard,
 	Package,
@@ -28,7 +29,10 @@ export const navGroups: NavGroup[] = [
 	},
 	{
 		label: 'Cotizaciones',
-		items: [{ href: '/cotizaciones', label: 'Cotizaciones', icon: FileText }]
+		items: [
+			{ href: '/cotizaciones', label: 'Cotizaciones', icon: FileText },
+			{ href: '/calculos', label: 'Cálculos', icon: Calculator }
+		]
 	},
 	{
 		label: 'Administración',

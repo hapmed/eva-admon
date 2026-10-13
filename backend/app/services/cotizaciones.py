@@ -14,7 +14,7 @@ from app.services.folios import generate_folio
 _CENT = Decimal("0.01")
 
 
-def _unique_folio(db: Session) -> str:
+def unique_folio(db: Session) -> str:
     for _ in range(10):
         folio = generate_folio()
         if db.scalar(select(Cotizacion).where(Cotizacion.folio == folio)) is None:
@@ -86,11 +86,12 @@ def create_cotizacion(db: Session, data: CotizacionCreate, user_id: int | None) 
     settings = get_settings()
     iva = data.iva_porcentaje if data.iva_porcentaje is not None else settings.iva_porcentaje
     cotizacion = Cotizacion(
-        folio=_unique_folio(db),
+        folio=unique_folio(db),
         cliente_id=data.cliente_id,
         fecha=data.fecha or date.today(),
         valida_hasta=data.valida_hasta,
         estado=data.estado,
+        moneda=data.moneda,
         iva_porcentaje=iva,
         notas=data.notas,
         created_by_id=user_id,

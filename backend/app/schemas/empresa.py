@@ -1,5 +1,7 @@
 """Esquemas de configuración de la empresa."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -15,6 +17,8 @@ class EmpresaRead(BaseModel):
     whatsapp: str
     iva_porcentaje: float
     moneda: str
+    tipo_cambio_usd: float = 0
+    tipo_cambio_actualizado: datetime | None = None
     tiene_logo: bool = False
     color_primary: str = ""
     color_secondary: str = ""
@@ -37,6 +41,7 @@ class EmpresaUpdate(BaseModel):
     whatsapp: str | None = None
     iva_porcentaje: float | None = None
     moneda: str | None = None
+    tipo_cambio_usd: float | None = Field(default=None, ge=0)
     color_primary: str | None = None
     color_secondary: str | None = None
     smtp_activo: bool | None = None

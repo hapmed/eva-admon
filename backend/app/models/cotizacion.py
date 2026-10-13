@@ -33,6 +33,7 @@ class Cotizacion(TimestampMixin, Base):
     fecha: Mapped[date] = mapped_column(Date)
     valida_hasta: Mapped[date | None] = mapped_column(Date, nullable=True)
     estado: Mapped[str] = mapped_column(String(20), default="borrador")
+    moneda: Mapped[str] = mapped_column(String(3), default="MXN")
     iva_porcentaje: Mapped[float] = mapped_column(Numeric(5, 2), default=16)
     subtotal: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
     descuento_total: Mapped[float] = mapped_column(Numeric(14, 2), default=0)
@@ -43,6 +44,10 @@ class Cotizacion(TimestampMixin, Base):
     notas: Mapped[str] = mapped_column(Text, default="")
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("usuario.id"), nullable=True
+    )
+    # Enlace interno al cálculo del que proviene (si aplica). No se muestra al cliente.
+    calculo_id: Mapped[int | None] = mapped_column(
+        ForeignKey("calculo.id"), nullable=True, index=True
     )
 
     items: Mapped[list["CotizacionItem"]] = relationship(

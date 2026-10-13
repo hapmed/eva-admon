@@ -35,7 +35,9 @@
 		valida_hasta: string | null;
 		estado: string;
 		iva_porcentaje: number;
+		moneda: string;
 		notas: string;
+		calculo_id: number | null;
 		items: Item[];
 	};
 
@@ -45,6 +47,7 @@
 	let servicios = $state<Catalogo[]>([]);
 	let materiales = $state<Catalogo[]>([]);
 	let folio = $state('');
+	let calculoOrigen = $state<number | null>(null);
 	let loading = $state(true);
 	let saving = $state(false);
 	let error = $state('');
@@ -55,9 +58,11 @@
 		valida_hasta: '',
 		iva_porcentaje: 16,
 		estado: 'borrador',
+		moneda: 'MXN',
 		notas: '',
 		items: [] as Item[]
 	});
+	let tipoCambio = $state(0);
 
 	const subtotal = $derived(
 		form.items.reduce((sum, item) => sum + item.cantidad * item.precio_unitario, 0)
@@ -80,21 +85,24 @@
 				api.get<Page<Cliente>>('/clientes?page_size=100&activo=true'),
 				api.get<Page<Catalogo>>('/servicios?page_size=100&activo=true'),
 				api.get<Page<Catalogo>>('/materiales?page_size=100&activo=true'),
-				api.get<{ iva_porcentaje: number }>('/configuracion')
+				api.get<{ iva_porcentaje: number; tipo_cambio_usd: number }>('/configuracion')
 			]);
 			clientes = cs.items;
 			servicios = ss.items;
 			materiales = ms.items;
 			form.iva_porcentaje = Number(config.iva_porcentaje ?? 16);
+			tipoCambio = Number(config.tipo_cambio_usd ?? 0);
 			if (cotizacionId) {
 				const cot = await api.get<Cotizacion>(`/cotizaciones/${cotizacionId}`);
 				folio = cot.folio;
+				calculoOrigen = cot.calculo_id ?? null;
 				form = {
 					cliente_id: cot.cliente_id,
 					fecha: cot.fecha,
 					valida_hasta: cot.valida_hasta ?? '',
 					iva_porcentaje: Number(cot.iva_porcentaje),
 					estado: cot.estado,
+					moneda: cot.moneda ?? 'MXN',
 					notas: cot.notas,
 					items: cot.items.map((i) => ({ ...i, tipo: i.tipo }))
 				};
@@ -158,6 +166,7 @@
 				valida_hasta: form.valida_hasta || null,
 				iva_porcentaje: Number(form.iva_porcentaje),
 				estado: form.estado,
+				moneda: form.moneda,
 				notas: form.notas,
 				items: form.items.map((i) => ({
 					...i,
@@ -183,6 +192,9 @@
 	subtitle="Servicios y materiales"
 >
 	{#snippet actions()}
+		{#if calculoOrigen}
+			<Button variant="secondary" href={`/calculos/${calculoOrigen}`}>Ver cálculo</Button>
+		{/if}
 		<Button variant="secondary" href="/cotizaciones">Volver</Button>
 		<Button variant="primary" onclick={save} disabled={saving}
 			>{saving ? 'Guardando…' : 'Guardar'}</Button
@@ -237,11 +249,25 @@
 					<option value="cancelada">Cancelada</option>
 				</select>
 			</label>
+			<label class={labelClass}>
+				<span class={labelTextClass}>Moneda</span>
+				<select class={inputClass} bind:value={form.moneda}>
+					<option value="MXN">MXN (pesos)</option>
+					<option value="USD">USD (dólares)</option>
+				</select>
+			</label>
 			<label class="{labelClass} sm:col-span-2 lg:col-span-3">
 				<span class={labelTextClass}>Notas</span>
 				<input class={inputClass} bind:value={form.notas} />
 			</label>
 		</div>
+
+		{#if form.moneda === 'USD'}
+			<InlineAlert tone="info">
+				Moneda USD. Referencia: 1 USD = ${tipoCambio ? tipoCambio.toFixed(4) : '—'} MXN. Los importes
+				se capturan en dólares.
+			</InlineAlert>
+		{/if}
 
 		<div class="rounded-brand border border-line bg-surface p-4">
 			<div class="flex flex-wrap items-center gap-2">
@@ -296,19 +322,23 @@
 						{#each form.items as item, index (index)}
 							<tr class="border-b border-line last:border-0">
 								<td class="px-2 py-2">
-									<select class={inputClass} bind:value={item.tipo}>
+									<select class="{inputClass} w-32" bind:value={item.tipo}>
 										<option value="servicio">Servicio</option>
 										<option value="material">Material</option>
 									</select>
 								</td>
-								<td class="px-2 py-2"><input class={inputClass} bind:value={item.descripcion} /></td
-								>
+								<td class="px-2 py-2">
+									<textarea
+										class="{inputClass} min-h-[44px] w-72 py-2"
+										rows="2"
+										bind:value={item.descripcion}></textarea>
+								</td>
 								<td class="px-2 py-2"
 									><input class="{inputClass} w-24" bind:value={item.unidad} /></td
 								>
 								<td class="px-2 py-2"
 									><input
-										class="{inputClass} w-20"
+										class="{inputClass} w-16"
 										type="number"
 										step="0.001"
 										min="0"
@@ -345,7 +375,8 @@
 								>
 								<td class="px-2 py-2 text-right">
 									{formatCurrency(
-										item.cantidad * item.precio_unitario * (1 - item.descuento_porcentaje / 100)
+										item.cantidad * item.precio_unitario * (1 - item.descuento_porcentaje / 100),
+										form.moneda
 									)}
 								</td>
 								<td class="px-2 py-2 text-right">
@@ -374,15 +405,15 @@
 				<dl class="w-64 space-y-1 text-[14px]">
 					<div class="flex justify-between">
 						<dt class="text-ink-2">Subtotal</dt>
-						<dd>{formatCurrency(subtotal)}</dd>
+						<dd>{formatCurrency(subtotal, form.moneda)}</dd>
 					</div>
 					<div class="flex justify-between">
 						<dt class="text-ink-2">Descuento</dt>
-						<dd>{formatCurrency(descuento)}</dd>
+						<dd>{formatCurrency(descuento, form.moneda)}</dd>
 					</div>
 					<div class="flex justify-between">
 						<dt class="text-ink-2">IVA {form.iva_porcentaje}%</dt>
-						<dd>{formatCurrency(ivaTotal)}</dd>
+						<dd>{formatCurrency(ivaTotal, form.moneda)}</dd>
 					</div>
 					<div class="flex justify-between">
 						<dt class="text-ink-2">Tiempo de entrega</dt>
@@ -390,7 +421,7 @@
 					</div>
 					<div class="flex justify-between border-t border-line pt-1 text-[16px] font-semibold">
 						<dt>Total</dt>
-						<dd>{formatCurrency(total)}</dd>
+						<dd>{formatCurrency(total, form.moneda)}</dd>
 					</div>
 				</dl>
 			</div>

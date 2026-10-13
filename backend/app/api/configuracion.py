@@ -1,7 +1,10 @@
-"""Configuración de la empresa emisora, logo, colores y SMTP."""
+"""Configuración de la empresa emisora, logo, colores, SMTP y tipo de cambio."""
 
+import json
 import re
 import secrets
+import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -124,6 +127,32 @@ def download_logo(db: Session = Depends(get_session)) -> FileResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sin logo")
     media_type = re.sub(r"[^a-zA-Z0-9/+.-]", "", config.logo_content_type or "image/png")
     return FileResponse(path, media_type=media_type, filename=config.logo_filename)
+
+
+def _fetch_usd_mxn() -> float:
+    url = "https://open.er-api.com/v6/latest/USD"
+    with urllib.request.urlopen(url, timeout=10) as response:  # noqa: S310
+        payload = json.loads(response.read().decode("utf-8"))
+    rate = (payload.get("rates") or {}).get("MXN")
+    if not rate:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo obtener el tipo de cambio"
+        )
+    return float(rate)
+
+
+@router.post(
+    "/tipo-cambio/actualizar", response_model=EmpresaRead, summary="Actualizar tipo de cambio USD"
+)
+def actualizar_tipo_cambio(
+    db: Session = Depends(get_session), _: Usuario = Depends(_admin)
+) -> EmpresaRead:
+    config = get_or_create(db)
+    config.tipo_cambio_usd = _fetch_usd_mxn()
+    config.tipo_cambio_actualizado = datetime.now(UTC)
+    db.commit()
+    db.refresh(config)
+    return _to_read(config)
 
 
 @router.post("/smtp/test", summary="Enviar correo de prueba (SMTP)")

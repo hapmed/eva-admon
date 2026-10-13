@@ -1,6 +1,8 @@
 """Configuración de la empresa emisora (registro único)."""
 
-from sqlalchemy import Boolean, Integer, Numeric, String
+from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -37,3 +39,9 @@ class EmpresaConfig(TimestampMixin, Base):
 
     iva_porcentaje: Mapped[float] = mapped_column(Numeric(5, 2), default=16)
     moneda: Mapped[str] = mapped_column(String(3), default="MXN")
+
+    # Tipo de cambio USD -> MXN (referencia, por defecto).
+    tipo_cambio_usd: Mapped[float] = mapped_column(Numeric(14, 4), default=0)
+    tipo_cambio_actualizado: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )

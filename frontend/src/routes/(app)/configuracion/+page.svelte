@@ -17,6 +17,8 @@
 		whatsapp: string;
 		iva_porcentaje: number;
 		moneda: string;
+		tipo_cambio_usd: number;
+		tipo_cambio_actualizado: string | null;
 		tiene_logo: boolean;
 		color_primary: string;
 		color_secondary: string;
@@ -41,6 +43,8 @@
 		whatsapp: '',
 		iva_porcentaje: 16,
 		moneda: 'MXN',
+		tipo_cambio_usd: 0,
+		tipo_cambio_actualizado: null,
 		tiene_logo: false,
 		color_primary: '',
 		color_secondary: '',
@@ -96,6 +100,7 @@
 				whatsapp: form.whatsapp,
 				iva_porcentaje: Number(form.iva_porcentaje),
 				moneda: form.moneda,
+				tipo_cambio_usd: Number(form.tipo_cambio_usd),
 				color_primary: form.color_primary,
 				color_secondary: form.color_secondary,
 				smtp_activo: form.smtp_activo,
@@ -132,6 +137,17 @@
 			error = err instanceof ApiError ? err.message : 'No se pudo subir el logo.';
 		} finally {
 			input.value = '';
+		}
+	}
+
+	async function actualizarTipoCambio() {
+		error = '';
+		message = '';
+		try {
+			form = await api.post<Empresa>('/configuracion/tipo-cambio/actualizar', {});
+			message = 'Tipo de cambio actualizado.';
+		} catch (err) {
+			error = err instanceof ApiError ? err.message : 'No se pudo actualizar el tipo de cambio.';
 		}
 	}
 
@@ -261,6 +277,32 @@
 					<span class={labelTextClass}>Moneda</span>
 					<input class={inputClass} bind:value={form.moneda} />
 				</label>
+			</div>
+
+			<div class="rounded-brand border border-line bg-surface p-4">
+				<p class="text-[14px] font-medium">Tipo de cambio (USD)</p>
+				<p class="mt-1 text-[13px] text-ink-2">
+					Referencia para cotizaciones en dólares. Puedes actualizarla desde una API pública o
+					editarla a mano.
+				</p>
+				<div class="mt-3 flex flex-wrap items-end gap-3">
+					<label class={labelClass}>
+						<span class={labelTextClass}>1 USD = MXN</span>
+						<input
+							class="{inputClass} max-w-[10rem]"
+							type="number"
+							step="0.0001"
+							min="0"
+							bind:value={form.tipo_cambio_usd}
+						/>
+					</label>
+					<Button variant="secondary" onclick={actualizarTipoCambio}>Actualizar</Button>
+					{#if form.tipo_cambio_actualizado}
+						<span class="text-[13px] text-ink-3"
+							>Actualizado: {form.tipo_cambio_actualizado.slice(0, 16).replace('T', ' ')}</span
+						>
+					{/if}
+				</div>
 			</div>
 
 			<div class="rounded-brand border border-line bg-surface p-4">

@@ -30,6 +30,7 @@ class CotizacionCreate(BaseModel):
     valida_hasta: date | None = None
     iva_porcentaje: float | None = Field(default=None, ge=0, le=100)
     estado: EstadoCotizacion = EstadoCotizacion.BORRADOR
+    moneda: str = Field(default="MXN", max_length=3)
     notas: str = ""
     items: list[ItemIn] = Field(default_factory=list)
 
@@ -40,6 +41,7 @@ class CotizacionUpdate(BaseModel):
     valida_hasta: date | None = None
     iva_porcentaje: float | None = Field(default=None, ge=0, le=100)
     estado: EstadoCotizacion | None = None
+    moneda: str | None = Field(default=None, max_length=3)
     notas: str | None = None
     items: list[ItemIn] | None = None
 
@@ -62,6 +64,7 @@ class CotizacionRead(BaseModel):
     fecha: date
     valida_hasta: date | None
     estado: EstadoCotizacion
+    moneda: str = "MXN"
     iva_porcentaje: float
     subtotal: float
     descuento_total: float
@@ -69,6 +72,7 @@ class CotizacionRead(BaseModel):
     total: float
     tiempo_entrega_dias: int = 0
     notas: str
+    calculo_id: int | None = None
     items: list[ItemRead] = Field(default_factory=list)
 
 
@@ -81,6 +85,8 @@ class CotizacionListItem(BaseModel):
     fecha: date
     estado: EstadoCotizacion
     total: float
+    moneda: str = "MXN"
+    calculo_id: int | None = None
 
 
 class CotizacionEnviarRequest(BaseModel):

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Download, Eye, Mail, Pencil, Share2, Trash2 } from '@lucide/svelte';
+	import { Calculator, Download, Eye, Mail, Pencil, Share2, Trash2 } from '@lucide/svelte';
 	import { ApiError, api } from '../../../lib/api/client';
 	import Button from '../../../lib/components/Button.svelte';
 	import DataTable from '../../../lib/components/DataTable.svelte';
@@ -21,6 +21,8 @@
 		fecha: string;
 		estado: 'borrador' | 'enviada' | 'aceptada' | 'rechazada' | 'cancelada';
 		total: number;
+		moneda: string;
+		calculo_id: number | null;
 	};
 	type Contacto = { nombre: string; email: string };
 
@@ -216,7 +218,7 @@
 				...c,
 				cliente: `${c.cliente.rfc} · ${c.cliente.nombre}`,
 				fecha: formatDate(c.fecha),
-				total: formatCurrency(c.total)
+				total: formatCurrency(c.total, c.moneda)
 			}))}
 			emptyTitle="Sin cotizaciones"
 			emptyDescription="Crea la primera con «Nueva cotización»."
@@ -226,6 +228,15 @@
 				{#if item}
 					<div class="flex flex-wrap items-center justify-end gap-1">
 						<StatusBadge status={estados[item.estado].status} label={estados[item.estado].label} />
+						{#if item.calculo_id}
+							<a
+								href={`/calculos/${item.calculo_id}`}
+								class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] text-ink-2 hover:bg-surface-2"
+								title="Ver cálculo origen (interno)"
+							>
+								<Calculator size={16} aria-hidden="true" />
+							</a>
+						{/if}
 						<a
 							href={`/cotizaciones/${item.id}`}
 							class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] hover:bg-surface-2"

@@ -22,8 +22,9 @@ def _safe(text: str | None) -> str:
     return (text or "").encode("latin-1", "replace").decode("latin-1")
 
 
-def _money(value: float) -> str:
-    return f"${float(value):,.2f}"
+def _money(value: float, moneda: str = "MXN") -> str:
+    symbol = "US$" if moneda.upper() == "USD" else "$"
+    return f"{symbol}{float(value):,.2f}"
 
 
 def _hex_to_rgb(value: str | None, fallback: tuple[int, int, int]) -> tuple[int, int, int]:
@@ -88,7 +89,7 @@ def render_cotizacion_pdf(cotizacion: Cotizacion, empresa: EmpresaConfig) -> byt
     pdf.add_page()
 
     _header(pdf, empresa, cotizacion, primary)
-    _parties(pdf, cotizacion, primary)
+    _parties(pdf, cotizacion, empresa, primary)
     _items(pdf, cotizacion, primary, secondary)
     _totals(pdf, cotizacion, primary)
     _notes(pdf, cotizacion, primary)
@@ -129,7 +130,9 @@ def _header(pdf: FPDF, empresa: EmpresaConfig, cotizacion: Cotizacion, primary: 
     pdf.set_y(band_y + 14)
 
 
-def _parties(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) -> None:
+def _parties(
+    pdf: FPDF, cotizacion: Cotizacion, empresa: EmpresaConfig, primary: tuple[int, int, int]
+) -> None:
     y0 = pdf.get_y()
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(*primary)
@@ -155,12 +158,16 @@ def _parties(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) -
             pdf.cell(105, 5, _safe(f"{contacto.nombre} <{contacto.email}>"), new_x="LMARGIN", new_y="NEXT")
 
     meta_y = y0 + 6
-    for label, value in [
+    meta_rows = [
         ("Fecha", cotizacion.fecha.isoformat()),
         ("Valida hasta", cotizacion.valida_hasta.isoformat() if cotizacion.valida_hasta else "-"),
         ("Entrega", f"{cotizacion.tiempo_entrega_dias} dias" if cotizacion.tiempo_entrega_dias else "-"),
-        ("Estado", cotizacion.estado.capitalize()),
-    ]:
+        ("Moneda", cotizacion.moneda),
+    ]
+    if cotizacion.moneda.upper() == "USD" and empresa.tipo_cambio_usd:
+        meta_rows.append(("T. cambio", f"1 USD = ${float(empresa.tipo_cambio_usd):,.2f} MXN"))
+    meta_rows.append(("Estado", cotizacion.estado.capitalize()))
+    for label, value in meta_rows:
         pdf.set_xy(_MARGIN + 110, meta_y)
         pdf.set_font("Helvetica", "B", 9)
         pdf.cell(28, 5, _safe(label), new_x="RIGHT", new_y="TOP")
@@ -191,10 +198,12 @@ def _items(
     pdf.set_text_color(40, 40, 45)
     for index, item in enumerate(cotizacion.items):
         fill = index % 2 == 1
-        _item_row(pdf, item, primary, zebra if fill else None)
+        _item_row(pdf, item, cotizacion.moneda, primary, zebra if fill else None)
 
 
-def _item_row(pdf: FPDF, item, primary: tuple[int, int, int], fill: tuple[int, int, int] | None) -> None:
+def _item_row(
+    pdf: FPDF, item, moneda: str, primary: tuple[int, int, int], fill: tuple[int, int, int] | None
+) -> None:
     line_h = 5
     pdf.set_font("Helvetica", size=9)
     max_width = _WIDTHS[0] - 4
@@ -223,10 +232,10 @@ def _item_row(pdf: FPDF, item, primary: tuple[int, int, int], fill: tuple[int, i
     values = [
         (_safe(item.unidad), "C", _WIDTHS[1]),
         (f"{float(item.cantidad):g}", "C", _WIDTHS[2]),
-        (_money(item.precio_unitario), "R", _WIDTHS[3]),
+        (_money(item.precio_unitario, moneda), "R", _WIDTHS[3]),
         (f"{float(item.descuento_porcentaje):g}%", "R", _WIDTHS[4]),
         (f"{item.tiempo_entrega_dias}d" if item.tiempo_entrega_dias else "-", "C", _WIDTHS[5]),
-        (_money(item.importe), "R", _WIDTHS[6]),
+        (_money(item.importe, moneda), "R", _WIDTHS[6]),
     ]
     cx = x0 + _WIDTHS[0]
     pdf.set_xy(cx, y0 + 1)
@@ -250,9 +259,9 @@ def _totals(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) ->
     pdf.set_font("Helvetica", size=10)
     pdf.set_text_color(60, 60, 65)
     rows = [
-        ("Subtotal", _money(cotizacion.subtotal)),
-        ("Descuento", _money(cotizacion.descuento_total)),
-        (f"IVA {float(cotizacion.iva_porcentaje):g}%", _money(cotizacion.iva_total)),
+        ("Subtotal", _money(cotizacion.subtotal, cotizacion.moneda)),
+        ("Descuento", _money(cotizacion.descuento_total, cotizacion.moneda)),
+        (f"IVA {float(cotizacion.iva_porcentaje):g}%", _money(cotizacion.iva_total, cotizacion.moneda)),
     ]
     for label, value in rows:
         pdf.set_xy(x, y)
@@ -264,7 +273,15 @@ def _totals(pdf: FPDF, cotizacion: Cotizacion, primary: tuple[int, int, int]) ->
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_xy(x, y)
     pdf.cell(box_w - 30, 8, "TOTAL", align="R", fill=True)
-    pdf.cell(30, 8, _money(cotizacion.total), align="R", fill=True, new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(
+        30,
+        8,
+        _money(cotizacion.total, cotizacion.moneda),
+        align="R",
+        fill=True,
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.set_y(y + 12)
 
 
