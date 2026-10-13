@@ -24,6 +24,11 @@ npm-debug.log*
 # Datos locales (logos subidos)
 data/
 
+# Playwright
+frontend/e2e/shots/
+frontend/test-results/
+frontend/playwright-report/
+
 # SO / editores
 .DS_Store
 Thumbs.db

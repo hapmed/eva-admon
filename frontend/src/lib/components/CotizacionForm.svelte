@@ -317,11 +317,11 @@
 							</button>
 						</div>
 						<label class="{labelClass} mt-2">
-							<span class={labelTextClass}>DescripciÃ³n</span>
+							<span class={labelTextClass}>Descripción</span>
 							<textarea
 								class="{inputClass} min-h-[64px] py-2"
 								rows="3"
-								placeholder="Detalle de la partidaâ€¦"
+								placeholder="Detalle de la partida…"
 								bind:value={item.descripcion}></textarea>
 						</label>
 						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -368,7 +368,7 @@
 								/>
 							</label>
 							<label class={labelClass}>
-								<span class={labelTextClass}>Entrega (dÃ­as)</span>
+								<span class={labelTextClass}>Entrega (días)</span>
 								<input
 									class={inputClass}
 									type="number"
@@ -393,7 +393,7 @@
 					<p
 						class="rounded-brand border border-dashed border-line px-4 py-6 text-center text-[14px] text-ink-3"
 					>
-						Sin partidas. Agrega una lÃ­nea o elige del catÃ¡logo.
+						Sin partidas. Agrega una línea o elige del catálogo.
 					</p>
 				{/if}
 			</div>

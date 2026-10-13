@@ -361,11 +361,11 @@
 							</button>
 						</div>
 						<label class="{labelClass} mt-2">
-							<span class={labelTextClass}>DescripciÃ³n</span>
+							<span class={labelTextClass}>Descripción</span>
 							<textarea
 								class="{inputClass} min-h-[64px] py-2"
 								rows="3"
-								placeholder="Detalle de la partidaâ€¦"
+								placeholder="Detalle de la partida…"
 								bind:value={item.descripcion}></textarea>
 						</label>
 						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -403,7 +403,7 @@
 								<input class={inputClass} bind:value={item.proveedor} />
 							</label>
 							<label class={labelClass}>
-								<span class={labelTextClass}>Entrega (dÃ­as)</span>
+								<span class={labelTextClass}>Entrega (días)</span>
 								<input
 									class={inputClass}
 									type="number"
@@ -437,7 +437,7 @@
 										bind:value={item.porcentaje_aumento}
 									/>
 								{:else}
-									<div class="flex min-h-11 items-center px-1 text-ink-3">â€”</div>
+									<div class="flex min-h-11 items-center px-1 text-ink-3">—</div>
 								{/if}
 							</label>
 							<div class={labelClass}>
@@ -475,7 +475,7 @@
 					<p
 						class="rounded-brand border border-dashed border-line px-4 py-6 text-center text-[14px] text-ink-3"
 					>
-						Sin partidas. Agrega una o elige del catÃ¡logo.
+						Sin partidas. Agrega una o elige del catálogo.
 					</p>
 				{/if}
 			</div>
