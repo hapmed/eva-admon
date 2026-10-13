@@ -303,102 +303,99 @@
 				</div>
 			</div>
 
-			<div class="mt-3 overflow-x-auto">
-				<table class="w-full border-collapse text-left text-[14px]">
-					<thead>
-						<tr class="border-b border-line text-ink-2">
-							<th class="px-2 py-2 font-medium">Tipo</th>
-							<th class="px-2 py-2 font-medium">Descripción</th>
-							<th class="px-2 py-2 font-medium">Unidad</th>
-							<th class="px-2 py-2 font-medium">Cant.</th>
-							<th class="px-2 py-2 font-medium">P. unit.</th>
-							<th class="px-2 py-2 font-medium">Desc. %</th>
-							<th class="px-2 py-2 font-medium">Entrega (d)</th>
-							<th class="px-2 py-2 text-right font-medium">Importe</th>
-							<th></th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each form.items as item, index (index)}
-							<tr class="border-b border-line last:border-0">
-								<td class="px-2 py-2">
-									<select class="{inputClass} w-32" bind:value={item.tipo}>
-										<option value="servicio">Servicio</option>
-										<option value="material">Material</option>
-									</select>
-								</td>
-								<td class="px-2 py-2">
-									<textarea
-										class="{inputClass} min-h-[44px] w-72 py-2"
-										rows="2"
-										bind:value={item.descripcion}></textarea>
-								</td>
-								<td class="px-2 py-2"
-									><input class="{inputClass} w-24" bind:value={item.unidad} /></td
-								>
-								<td class="px-2 py-2"
-									><input
-										class="{inputClass} w-16"
-										type="number"
-										step="0.001"
-										min="0"
-										bind:value={item.cantidad}
-									/></td
-								>
-								<td class="px-2 py-2"
-									><input
-										class="{inputClass} w-28"
-										type="number"
-										step="0.01"
-										min="0"
-										bind:value={item.precio_unitario}
-									/></td
-								>
-								<td class="px-2 py-2"
-									><input
-										class="{inputClass} w-20"
-										type="number"
-										step="0.01"
-										min="0"
-										max="100"
-										bind:value={item.descuento_porcentaje}
-									/></td
-								>
-								<td class="px-2 py-2"
-									><input
-										class="{inputClass} w-20"
-										type="number"
-										step="1"
-										min="0"
-										bind:value={item.tiempo_entrega_dias}
-									/></td
-								>
-								<td class="px-2 py-2 text-right">
-									{formatCurrency(
-										item.cantidad * item.precio_unitario * (1 - item.descuento_porcentaje / 100),
-										form.moneda
-									)}
-								</td>
-								<td class="px-2 py-2 text-right">
-									<button
-										class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] text-danger hover:bg-surface-2"
-										title="Quitar"
-										onclick={() => removeItem(index)}
-									>
-										<Trash2 size={16} aria-hidden="true" />
-									</button>
-								</td>
-							</tr>
-						{/each}
-						{#if form.items.length === 0}
-							<tr
-								><td colspan="9" class="px-2 py-6 text-center text-ink-3"
-									>Sin partidas. Agrega una línea o elige del catálogo.</td
-								></tr
+			<div class="mt-3 flex flex-col gap-3">
+				{#each form.items as item, index (index)}
+					<div class="rounded-brand border border-line bg-surface-2/40 p-3">
+						<div class="flex items-center justify-between">
+							<span class="text-[13px] font-semibold text-ink-2">Partida {index + 1}</span>
+							<button
+								class="inline-flex h-9 w-9 items-center justify-center rounded-[10px] text-danger hover:bg-surface-2"
+								title="Quitar"
+								onclick={() => removeItem(index)}
 							>
-						{/if}
-					</tbody>
-				</table>
+								<Trash2 size={16} aria-hidden="true" />
+							</button>
+						</div>
+						<label class="{labelClass} mt-2">
+							<span class={labelTextClass}>DescripciÃ³n</span>
+							<textarea
+								class="{inputClass} min-h-[64px] py-2"
+								rows="3"
+								placeholder="Detalle de la partidaâ€¦"
+								bind:value={item.descripcion}></textarea>
+						</label>
+						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+							<label class={labelClass}>
+								<span class={labelTextClass}>Tipo</span>
+								<select class={inputClass} bind:value={item.tipo}>
+									<option value="servicio">Servicio</option>
+									<option value="material">Material</option>
+								</select>
+							</label>
+							<label class={labelClass}>
+								<span class={labelTextClass}>Unidad</span>
+								<input class={inputClass} bind:value={item.unidad} />
+							</label>
+							<label class={labelClass}>
+								<span class={labelTextClass}>Cantidad</span>
+								<input
+									class={inputClass}
+									type="number"
+									step="0.001"
+									min="0"
+									bind:value={item.cantidad}
+								/>
+							</label>
+							<label class={labelClass}>
+								<span class={labelTextClass}>P. unitario</span>
+								<input
+									class={inputClass}
+									type="number"
+									step="0.01"
+									min="0"
+									bind:value={item.precio_unitario}
+								/>
+							</label>
+							<label class={labelClass}>
+								<span class={labelTextClass}>Desc. %</span>
+								<input
+									class={inputClass}
+									type="number"
+									step="0.01"
+									min="0"
+									max="100"
+									bind:value={item.descuento_porcentaje}
+								/>
+							</label>
+							<label class={labelClass}>
+								<span class={labelTextClass}>Entrega (dÃ­as)</span>
+								<input
+									class={inputClass}
+									type="number"
+									step="1"
+									min="0"
+									bind:value={item.tiempo_entrega_dias}
+								/>
+							</label>
+						</div>
+						<div class="mt-3 flex justify-end border-t border-line pt-2 text-[14px]">
+							<span class="text-ink-2">Importe:&nbsp;</span>
+							<span class="font-semibold">
+								{formatCurrency(
+									item.cantidad * item.precio_unitario * (1 - item.descuento_porcentaje / 100),
+									form.moneda
+								)}
+							</span>
+						</div>
+					</div>
+				{/each}
+				{#if form.items.length === 0}
+					<p
+						class="rounded-brand border border-dashed border-line px-4 py-6 text-center text-[14px] text-ink-3"
+					>
+						Sin partidas. Agrega una lÃ­nea o elige del catÃ¡logo.
+					</p>
+				{/if}
 			</div>
 
 			<div class="mt-4 flex justify-end">

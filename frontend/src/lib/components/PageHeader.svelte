@@ -13,6 +13,6 @@
 		{/if}
 	</div>
 	{#if actions}
-		<div class="flex gap-2">{@render actions()}</div>
+		<div class="flex flex-wrap gap-2 sm:justify-end">{@render actions()}</div>
 	{/if}
 </div>

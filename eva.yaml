@@ -18,6 +18,8 @@ versions:
     status: approved
   - version: "0.5.0"
     status: approved
+  - version: "0.6.0"
+    status: approved
 
 port: 8000
 healthcheck: /healthz
