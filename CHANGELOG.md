@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.2 — 2026-10-21
+
+### Cambiado
+- Rediseño del PDF más simple y editorial: una sola línea de acento con el
+  color de la empresa, sin tarjetas ni fondos grises.
+- Cabecera con logo, nombre comercial, razón social y sitio web.
+- Emisor y cliente en dos columnas de texto, con RFC, domicilio y contacto.
+- Tabla de partidas con líneas finas y totales alineados a la derecha.
+- Mensaje de cierre personalizado con el correo de la empresa.
+- Pie de página con razón social, sitio web, folio y paginación.
+
 Formato basado en *Keep a Changelog*. Fechas en UTC.
 
 ## 0.7.1 — 2026-10-21

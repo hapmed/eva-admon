@@ -6,9 +6,16 @@
 		<style>
 			@page {
 				size: A4;
-				margin: 16mm 15mm 20mm;
+				margin: 18mm 16mm 20mm;
+				@bottom-left {
+					content: '{{ (empresa.razon_social or empresa.nombre_comercial)|css }}'
+						{%- if empresa.sitio_web %} ' · {{ empresa.sitio_web|css }}'{% endif %};
+					font-family: 'Helvetica Neue', 'Nimbus Sans', 'Liberation Sans', Arial, sans-serif;
+					font-size: 7.5pt;
+					color: #8a8a8f;
+				}
 				@bottom-right {
-					content: 'Página ' counter(page) ' de ' counter(pages);
+					content: '{{ cotizacion.folio }} · ' counter(page) '/' counter(pages);
 					font-family: 'Helvetica Neue', 'Nimbus Sans', 'Liberation Sans', Arial, sans-serif;
 					font-size: 7.5pt;
 					color: #8a8a8f;
@@ -19,170 +26,140 @@
 			body {
 				font-family: 'Helvetica Neue', 'Nimbus Sans', 'Liberation Sans', Arial, sans-serif;
 				font-size: 9.5pt;
-				line-height: 1.5;
+				line-height: 1.55;
 				color: #1d1d1f;
 			}
 
-			.topbar {
-				height: 3px;
-				background: linear-gradient(135deg, {{ primary }}, {{ secondary }});
-				border-radius: 3px;
-				margin-bottom: 18px;
+			.accent-rule {
+				height: 2px;
+				background: {{ primary }};
+				margin-bottom: 20px;
 			}
 
 			.header { width: 100%; border-collapse: collapse; }
 			.header td { vertical-align: top; padding: 0; }
 			.header .doc { text-align: right; }
 
-			.brand-logo { height: 34px; width: auto; }
+			.brand-logo { height: 36px; width: auto; }
 			.brand-mark {
 				display: inline-block;
-				width: 34px; height: 34px;
+				width: 36px; height: 36px;
 				border-radius: 10px;
-				background: linear-gradient(135deg, {{ primary }}, {{ secondary }});
+				background: {{ primary }};
 				color: #fff;
-				font-size: 15pt;
+				font-size: 16pt;
 				font-weight: 700;
 				text-align: center;
-				line-height: 34px;
-				margin-right: 9px;
+				line-height: 36px;
+				margin-right: 10px;
 				vertical-align: middle;
 			}
 			.brand-name {
 				display: inline-block;
 				vertical-align: middle;
-				font-size: 13pt;
+				font-size: 14pt;
 				font-weight: 700;
-				letter-spacing: 0.16em;
+				letter-spacing: 0.14em;
 				text-transform: uppercase;
 			}
-			.brand-sub { margin-top: 5px; font-size: 8pt; color: #6e6e73; }
+			.brand-sub { margin-top: 4px; font-size: 8.5pt; color: #6e6e73; }
 
-			.eyebrow {
+			.doc-label {
 				font-size: 7.5pt;
 				font-weight: 600;
-				letter-spacing: 0.16em;
+				letter-spacing: 0.18em;
+				text-transform: uppercase;
+				color: {{ primary }};
+			}
+			.folio { font-size: 21pt; font-weight: 600; letter-spacing: -0.01em; margin-top: 2px; }
+			.doc-date { margin-top: 2px; font-size: 8.5pt; color: #6e6e73; }
+
+			.divider { height: 1px; background: #e5e5ea; margin: 18px 0 16px; }
+
+			.parties { width: 100%; border-collapse: collapse; }
+			.parties td { width: 50%; vertical-align: top; padding: 0; }
+			.parties td + td { padding-left: 14mm; }
+			.party-label {
+				font-size: 7pt;
+				font-weight: 600;
+				letter-spacing: 0.14em;
 				text-transform: uppercase;
 				color: #8a8a8f;
+				margin-bottom: 4px;
 			}
-			.number { font-size: 19pt; font-weight: 600; margin: 2px 0 6px; }
-			.pill {
-				display: inline-block;
-				padding: 3px 9px;
-				border-radius: 999px;
-				font-size: 7.5pt;
-				font-weight: 600;
-			}
-			.pill-borrador { background: #f2f2f7; color: #6e6e73; }
-			.pill-enviada { background: #e8efff; color: {{ primary }}; }
-			.pill-aceptada { background: #e6f8ec; color: #1d8a3e; }
-			.pill-rechazada { background: #ffeceb; color: #c22b22; }
-			.pill-cancelada { background: #f2f2f7; color: #8a8a8f; }
+			.party-name { font-size: 11pt; font-weight: 600; margin-bottom: 2px; }
+			.party-line { font-size: 8.5pt; color: #6e6e73; }
+			.party-line strong { color: #1d1d1f; font-weight: 500; }
 
-			.meta { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 16px -8px 0; }
-			.meta td {
-				width: 25%;
-				background: #f2f2f7;
-				border-radius: 12px;
-				padding: 9px 11px;
-				vertical-align: top;
+			.meta {
+				margin-top: 14px;
+				font-size: 8.5pt;
+				color: #6e6e73;
 			}
-			.meta .label {
+			.meta span + span::before { content: '  ·  '; color: #c7c7cc; }
+
+			.items { width: 100%; border-collapse: collapse; margin-top: 18px; }
+			.items th {
+				text-align: left;
 				font-size: 7pt;
 				font-weight: 600;
 				letter-spacing: 0.1em;
 				text-transform: uppercase;
 				color: #8a8a8f;
+				padding: 0 0 7px;
+				border-bottom: 1px solid {{ primary }};
 			}
-			.meta .value { font-size: 9pt; font-weight: 500; margin-top: 2px; white-space: nowrap; }
-
-			.cards { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 14px -8px 0; }
-			.cards td {
-				width: 50%;
+			.items td {
+				padding: 9px 0;
 				vertical-align: top;
-				border: 1px solid rgba(0, 0, 0, 0.08);
-				border-radius: 14px;
-				padding: 12px 13px;
+				border-bottom: 1px solid #ececf0;
+				font-size: 9pt;
 			}
-			.card-label {
-				font-size: 7pt;
-				font-weight: 600;
-				letter-spacing: 0.12em;
-				text-transform: uppercase;
-				color: #8a8a8f;
-				margin-bottom: 5px;
-			}
-			.card-title { font-size: 10.5pt; font-weight: 600; margin-bottom: 3px; }
-			.card-line { font-size: 8.5pt; color: #6e6e73; }
-			.card-line strong { color: #1d1d1f; font-weight: 500; }
+			.items .num { text-align: right; white-space: nowrap; }
+			.items .center { text-align: center; }
+			.items th.num { text-align: right; }
+			.items th.center { text-align: center; }
+			.items .desc { padding-right: 14px; }
 
-			.section { margin-top: 20px; }
-			.section-title {
-				font-size: 7.5pt;
+			.bottom { width: 100%; border-collapse: collapse; margin-top: 18px; }
+			.bottom td { vertical-align: top; padding: 0; }
+			.notes { width: 55%; padding-right: 10mm; }
+			.notes-title {
+				font-size: 7pt;
 				font-weight: 600;
 				letter-spacing: 0.14em;
 				text-transform: uppercase;
 				color: #8a8a8f;
-				margin-bottom: 7px;
+				margin-bottom: 4px;
 			}
-			table.items { width: 100%; border-collapse: collapse; }
-			table.items th {
-				text-align: left;
-				font-size: 7pt;
-				font-weight: 600;
-				letter-spacing: 0.08em;
-				text-transform: uppercase;
-				color: #8a8a8f;
-				padding: 0 0 6px;
-				border-bottom: 1px solid rgba(0, 0, 0, 0.14);
-			}
-			table.items td {
-				padding: 8px 0;
-				vertical-align: top;
-				border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-				font-size: 9pt;
-			}
-			table.items .num { text-align: right; white-space: nowrap; }
-			table.items .center { text-align: center; }
-			table.items th.num { text-align: right; }
-			table.items th.center { text-align: center; }
-			table.items .desc { padding-right: 12px; }
+			.notes-text { font-size: 8.5pt; color: #6e6e73; white-space: pre-line; }
 
-			.footer-grid { width: 100%; border-collapse: separate; border-spacing: 8px 0; margin: 16px -8px 0; }
-			.notes { width: 58%; }
-			.totals-cell { width: 42%; }
-			.note-text { font-size: 8.5pt; color: #6e6e73; white-space: pre-line; }
-
-			.totals {
-				background: #f2f2f7;
-				border-radius: 14px;
-				padding: 12px 14px;
-			}
+			.totals { width: 45%; }
 			.totals table { width: 100%; border-collapse: collapse; }
 			.totals td { padding: 3px 0; font-size: 8.5pt; color: #6e6e73; }
 			.totals td.value { text-align: right; color: #1d1d1f; font-weight: 500; white-space: nowrap; }
-			.totals tr.grand td {
+			.totals tr.total td {
 				padding-top: 8px;
-				border-top: 1px solid rgba(0, 0, 0, 0.1);
-				font-size: 11.5pt;
+				border-top: 1px solid #1d1d1f;
+				font-size: 12pt;
 				font-weight: 600;
 				color: #1d1d1f;
 			}
-			.totals tr.grand td.value { color: {{ primary }}; }
+			.totals tr.total td.value { color: {{ primary }}; }
 
-			.legal {
-				margin-top: 18px;
-				padding-top: 9px;
-				border-top: 1px solid rgba(0, 0, 0, 0.08);
-				font-size: 7.5pt;
-				color: #8a8a8f;
-				text-align: center;
+			.thanks {
+				margin-top: 22px;
+				padding-top: 10px;
+				border-top: 1px solid #ececf0;
+				font-size: 8.5pt;
+				color: #6e6e73;
 			}
+			.thanks strong { color: #1d1d1f; font-weight: 500; }
 			.block { page-break-inside: avoid; }
 		</style>
 	</head>
 	<body>
-		<div class="topbar"></div>
+		<div class="accent-rule"></div>
 
 		<table class="header">
 			<tr>
@@ -193,7 +170,7 @@
 						<span class="brand-mark">{{ (empresa.nombre_comercial or empresa.razon_social or 'H')[:1] }}</span>
 					{% endif %}
 					<span class="brand-name">{{ empresa.nombre_comercial or empresa.razon_social or 'HAPMED' }}</span>
-					{% if empresa.razon_social and empresa.nombre_comercial %}
+					{% if empresa.razon_social %}
 						<div class="brand-sub">{{ empresa.razon_social }}</div>
 					{% endif %}
 					{% if empresa.sitio_web %}
@@ -201,138 +178,119 @@
 					{% endif %}
 				</td>
 				<td class="doc">
-					<div class="eyebrow">Cotización</div>
-					<div class="number">{{ cotizacion.folio }}</div>
-					<span class="pill pill-{{ cotizacion.estado }}">{{ estado_label }}</span>
+					<div class="doc-label">Cotización</div>
+					<div class="folio">{{ cotizacion.folio }}</div>
+					<div class="doc-date">{{ cotizacion.fecha|fecha }}</div>
 				</td>
 			</tr>
 		</table>
 
-		<table class="meta">
-			<tr>
-				<td>
-					<div class="label">Fecha</div>
-					<div class="value">{{ cotizacion.fecha|fecha }}</div>
-				</td>
-				<td>
-					<div class="label">Válida hasta</div>
-					<div class="value">{{ cotizacion.valida_hasta|fecha }}</div>
-				</td>
-				<td>
-					<div class="label">Entrega</div>
-					<div class="value">{{ cotizacion.tiempo_entrega_dias|days or '—' }}</div>
-				</td>
-				<td>
-					<div class="label">Moneda</div>
-					<div class="value">{{ cotizacion.moneda }}</div>
-				</td>
-			</tr>
-		</table>
+		<div class="divider"></div>
 
-		<table class="cards block">
+		<table class="parties block">
 			<tr>
 				<td>
-					<div class="card-label">Emisor</div>
-					<div class="card-title">{{ empresa.razon_social or '—' }}</div>
+					<div class="party-label">Emisor</div>
+					<div class="party-name">{{ empresa.razon_social or empresa.nombre_comercial or '—' }}</div>
 					{% if empresa.rfc %}
-						<div class="card-line"><strong>RFC:</strong> {{ empresa.rfc }}</div>
+						<div class="party-line"><strong>RFC:</strong> {{ empresa.rfc }}</div>
 					{% endif %}
 					{% for line in contact_lines %}
-						<div class="card-line">{{ line }}</div>
+						<div class="party-line">{{ line }}</div>
 					{% endfor %}
 					{% if empresa.telefono %}
-						<div class="card-line"><strong>Tel:</strong> {{ empresa.telefono }}</div>
+						<div class="party-line"><strong>Tel:</strong> {{ empresa.telefono }}</div>
 					{% endif %}
-					{% if empresa.email %}<div class="card-line">{{ empresa.email }}</div>{% endif %}
-					{% if empresa.whatsapp %}
-						<div class="card-line"><strong>WhatsApp:</strong> {{ empresa.whatsapp }}</div>
-					{% endif %}
+					{% if empresa.email %}<div class="party-line">{{ empresa.email }}</div>{% endif %}
 				</td>
 				<td>
-					<div class="card-label">Cliente</div>
-					<div class="card-title">{{ cliente.nombre }}</div>
+					<div class="party-label">Cliente</div>
+					<div class="party-name">{{ cliente.nombre }}</div>
 					{% if cliente.rfc %}
-						<div class="card-line"><strong>RFC:</strong> {{ cliente.rfc }}</div>
+						<div class="party-line"><strong>RFC:</strong> {{ cliente.rfc }}</div>
 					{% endif %}
 					{% if cliente.condiciones_pago %}
-						<div class="card-line">{{ cliente.condiciones_pago }}</div>
+						<div class="party-line">{{ cliente.condiciones_pago }}</div>
 					{% endif %}
 					{% for contacto in cliente.contactos[:2] %}
-						<div class="card-line">{{ contacto.nombre }} · {{ contacto.email }}</div>
+						<div class="party-line">{{ contacto.nombre }} · {{ contacto.email }}</div>
 					{% endfor %}
 				</td>
 			</tr>
 		</table>
 
-		<div class="section block">
-			<div class="section-title">Detalle</div>
-			<table class="items">
-				<thead>
-					<tr>
-						<th class="desc">Descripción</th>
-						<th class="center" style="width: 11%">Unidad</th>
-						<th class="center" style="width: 9%">Cant.</th>
-						<th class="num" style="width: 15%">P. unit.</th>
-						<th class="num" style="width: 9%">Desc.</th>
-						<th class="center" style="width: 10%">Entrega</th>
-						<th class="num" style="width: 16%">Importe</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for item in cotizacion.items %}
-						<tr>
-							<td class="desc">{{ item.descripcion }}</td>
-							<td class="center">{{ item.unidad or '' }}</td>
-							<td class="center">{{ item.cantidad|qty }}</td>
-							<td class="num">{{ item.precio_unitario|money_blank(cotizacion.moneda) }}</td>
-							<td class="num">{{ item.descuento_porcentaje|pct }}</td>
-							<td class="center">{{ item.tiempo_entrega_dias|days }}</td>
-							<td class="num">{{ item.importe|money_blank(cotizacion.moneda) }}</td>
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+		<div class="meta">
+			<span><strong>Válida hasta:</strong> {{ cotizacion.valida_hasta|fecha }}</span>
+			{% if cotizacion.tiempo_entrega_dias %}
+				<span><strong>Entrega:</strong> {{ cotizacion.tiempo_entrega_dias }} días</span>
+			{% endif %}
+			<span><strong>Moneda:</strong> {{ cotizacion.moneda }}</span>
+			<span><strong>Estado:</strong> {{ estado_label }}</span>
 		</div>
 
-		<table class="footer-grid block">
+		<table class="items block">
+			<thead>
+				<tr>
+					<th class="desc">Descripción</th>
+					<th class="center" style="width: 9%">Unidad</th>
+					<th class="center" style="width: 7%">Cant.</th>
+					<th class="num" style="width: 14%">P. unit.</th>
+					<th class="num" style="width: 8%">Desc.</th>
+					<th class="center" style="width: 9%">Entrega</th>
+					<th class="num" style="width: 15%">Importe</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for item in cotizacion.items %}
+					<tr>
+						<td class="desc">{{ item.descripcion }}</td>
+						<td class="center">{{ item.unidad or '' }}</td>
+						<td class="center">{{ item.cantidad|qty }}</td>
+						<td class="num">{{ item.precio_unitario|money_blank(cotizacion.moneda) }}</td>
+						<td class="num">{{ item.descuento_porcentaje|pct }}</td>
+						<td class="center">{{ item.tiempo_entrega_dias|days }}</td>
+						<td class="num">{{ item.importe|money_blank(cotizacion.moneda) }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+
+		<table class="bottom block">
 			<tr>
 				<td class="notes">
 					{% if cotizacion.notas %}
-						<div class="section-title">Notas</div>
-						<div class="note-text">{{ cotizacion.notas }}</div>
+						<div class="notes-title">Notas</div>
+						<div class="notes-text">{{ cotizacion.notas }}</div>
 					{% endif %}
 				</td>
-				<td class="totals-cell">
-					<div class="totals">
-						<table>
+				<td class="totals">
+					<table>
+						<tr>
+							<td>Subtotal</td>
+							<td class="value">{{ cotizacion.subtotal|money(cotizacion.moneda) }}</td>
+						</tr>
+						{% if descuento %}
 							<tr>
-								<td>Subtotal</td>
-								<td class="value">{{ cotizacion.subtotal|money(cotizacion.moneda) }}</td>
+								<td>Descuento</td>
+								<td class="value">− {{ cotizacion.descuento_total|money(cotizacion.moneda) }}</td>
 							</tr>
-							{% if descuento %}
-								<tr>
-									<td>Descuento</td>
-									<td class="value">− {{ cotizacion.descuento_total|money(cotizacion.moneda) }}</td>
-								</tr>
-							{% endif %}
-							<tr>
-								<td>IVA ({{ '%g'|format(cotizacion.iva_porcentaje|float) }}%)</td>
-								<td class="value">{{ cotizacion.iva_total|money(cotizacion.moneda) }}</td>
-							</tr>
-							<tr class="grand">
-								<td>Total</td>
-								<td class="value">{{ cotizacion.total|money(cotizacion.moneda) }}</td>
-							</tr>
-						</table>
-					</div>
+						{% endif %}
+						<tr>
+							<td>IVA ({{ '%g'|format(cotizacion.iva_porcentaje|float) }}%)</td>
+							<td class="value">{{ cotizacion.iva_total|money(cotizacion.moneda) }}</td>
+						</tr>
+						<tr class="total">
+							<td>Total</td>
+							<td class="value">{{ cotizacion.total|money(cotizacion.moneda) }}</td>
+						</tr>
+					</table>
 				</td>
 			</tr>
 		</table>
 
-		<div class="legal">
-			{{ empresa.razon_social or empresa.nombre_comercial }}
-			{%- if empresa.rfc %} · RFC {{ empresa.rfc }}{% endif %}
-			{%- if empresa.email %} · {{ empresa.email }}{% endif %}
+		<div class="thanks">
+			Gracias por su confianza. Cualquier duda sobre esta cotización, escríbenos a
+			<strong>{{ empresa.email or 'nuestro correo de contacto' }}</strong>.
 		</div>
 	</body>
 </html>

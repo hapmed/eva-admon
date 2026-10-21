@@ -97,12 +97,25 @@ def _date(value: date | None) -> str:
     return f"{value.day} de {MONTHS_ES[value.month - 1]} de {value.year}"
 
 
+def _css_text(value: object) -> str:
+    """Texto seguro para incrustar en `content:` de CSS."""
+    return (
+        str(value or "")
+        .replace("\\", " ")
+        .replace("'", "’")
+        .replace('"', "”")
+        .replace("\n", " ")
+        .strip()
+    )
+
+
 _env.filters["money"] = _money
 _env.filters["money_blank"] = _money_blank
 _env.filters["qty"] = _qty
 _env.filters["pct"] = _pct
 _env.filters["days"] = _days
 _env.filters["fecha"] = _date
+_env.filters["css"] = _css_text
 
 
 def _color(value: str | None, fallback: str) -> str:
