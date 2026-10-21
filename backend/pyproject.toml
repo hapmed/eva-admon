@@ -1,6 +1,6 @@
 [project]
 name = "eva-starter-backend"
-version = "0.7.0"
+version = "0.7.1"
 description = "Backend de la EVA (FastAPI). Plantilla base."
 requires-python = ">=3.12"
 dependencies = [
@@ -14,6 +14,8 @@ dependencies = [
   "psycopg[binary]>=3.2",
   "pyjwt>=2.9",
   "fpdf2>=2.8",
+  "jinja2>=3.1",
+  "weasyprint>=62.3",
   "python-multipart>=0.0.9",
 ]
 
@@ -40,3 +42,10 @@ ignore = ["B008"]
 addopts = "-q"
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = ["weasyprint.*"]
+ignore_missing_imports = true

@@ -19,6 +19,14 @@ class EmpresaConfig(TimestampMixin, Base):
     telefono: Mapped[str] = mapped_column(String(40), default="")
     email: Mapped[str] = mapped_column(String(255), default="")
     whatsapp: Mapped[str] = mapped_column(String(40), default="")
+    sitio_web: Mapped[str] = mapped_column(String(255), default="")
+
+    # Domicilio fiscal (se imprime en la cotización).
+    direccion: Mapped[str] = mapped_column(String(255), default="")
+    ciudad: Mapped[str] = mapped_column(String(120), default="")
+    estado: Mapped[str] = mapped_column(String(120), default="")
+    codigo_postal: Mapped[str] = mapped_column(String(20), default="")
+    pais: Mapped[str] = mapped_column(String(120), default="México")
 
     logo_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
     logo_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)

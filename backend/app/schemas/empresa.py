@@ -15,6 +15,12 @@ class EmpresaRead(BaseModel):
     telefono: str
     email: str
     whatsapp: str
+    sitio_web: str = ""
+    direccion: str = ""
+    ciudad: str = ""
+    estado: str = ""
+    codigo_postal: str = ""
+    pais: str = "México"
     iva_porcentaje: float
     moneda: str
     tipo_cambio_usd: float = 0
@@ -39,6 +45,12 @@ class EmpresaUpdate(BaseModel):
     telefono: str | None = None
     email: str | None = None
     whatsapp: str | None = None
+    sitio_web: str | None = None
+    direccion: str | None = None
+    ciudad: str | None = None
+    estado: str | None = None
+    codigo_postal: str | None = None
+    pais: str | None = None
     iva_porcentaje: float | None = None
     moneda: str | None = None
     tipo_cambio_usd: float | None = Field(default=None, ge=0)

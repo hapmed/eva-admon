@@ -13,6 +13,13 @@ RUN npm run build
 FROM python:3.12-slim AS api
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
 
+# WeasyPrint (PDF): Pango, Cairo y fuentes.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 \
+        libgdk-pixbuf-2.0-0 fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \

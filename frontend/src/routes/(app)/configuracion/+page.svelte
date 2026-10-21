@@ -15,6 +15,12 @@
 		telefono: string;
 		email: string;
 		whatsapp: string;
+		sitio_web: string;
+		direccion: string;
+		ciudad: string;
+		estado: string;
+		codigo_postal: string;
+		pais: string;
 		iva_porcentaje: number;
 		moneda: string;
 		tipo_cambio_usd: number;
@@ -41,6 +47,12 @@
 		telefono: '',
 		email: '',
 		whatsapp: '',
+		sitio_web: '',
+		direccion: '',
+		ciudad: '',
+		estado: '',
+		codigo_postal: '',
+		pais: 'México',
 		iva_porcentaje: 16,
 		moneda: 'MXN',
 		tipo_cambio_usd: 0,
@@ -98,6 +110,12 @@
 				telefono: form.telefono,
 				email: form.email,
 				whatsapp: form.whatsapp,
+				sitio_web: form.sitio_web,
+				direccion: form.direccion,
+				ciudad: form.ciudad,
+				estado: form.estado,
+				codigo_postal: form.codigo_postal,
+				pais: form.pais,
 				iva_porcentaje: Number(form.iva_porcentaje),
 				moneda: form.moneda,
 				tipo_cambio_usd: Number(form.tipo_cambio_usd),
@@ -261,6 +279,30 @@
 				<label class={labelClass}>
 					<span class={labelTextClass}>WhatsApp</span>
 					<input class={inputClass} bind:value={form.whatsapp} />
+				</label>
+				<label class={labelClass}>
+					<span class={labelTextClass}>Sitio web</span>
+					<input class={inputClass} bind:value={form.sitio_web} />
+				</label>
+				<label class="{labelClass} sm:col-span-2">
+					<span class={labelTextClass}>Dirección fiscal</span>
+					<input class={inputClass} bind:value={form.direccion} />
+				</label>
+				<label class={labelClass}>
+					<span class={labelTextClass}>Ciudad</span>
+					<input class={inputClass} bind:value={form.ciudad} />
+				</label>
+				<label class={labelClass}>
+					<span class={labelTextClass}>Estado</span>
+					<input class={inputClass} bind:value={form.estado} />
+				</label>
+				<label class={labelClass}>
+					<span class={labelTextClass}>Código postal</span>
+					<input class={inputClass} bind:value={form.codigo_postal} />
+				</label>
+				<label class={labelClass}>
+					<span class={labelTextClass}>País</span>
+					<input class={inputClass} bind:value={form.pais} />
 				</label>
 				<label class={labelClass}>
 					<span class={labelTextClass}>IVA (%)</span>
